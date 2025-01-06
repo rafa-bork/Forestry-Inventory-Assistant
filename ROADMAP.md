@@ -10,7 +10,7 @@ Minimum Features
 - calculate stand metrics (dominant height, dominant diameter, density, basal area, total valume, total biomass, mean quadratic diametre, wilson factor)
 - create plots and graphs with the data (using mathplotlib probably)
 
-Display the values per hectare !!!!!
+Display the values per hectare !!!!! (maybe input that after uploading csv)
 
 
 Extras:
@@ -35,6 +35,9 @@ Extras:
 - volume by assortments
 - vulume without bark, without stump, without both
 - volume without bicada
+- model trees (height or diameter)
+- cubing equations (for stands without diametre and height only hdom and g)
+- biomass wood, bark, trunk, branches, leaves, canopy, roots
 
 
 possible errors to catch:
@@ -43,3 +46,10 @@ possible errors to catch:
 - structure of csv not square (specify to user that the .csv needs to be square)
 - improper file format (not uploading csv but instead .xslx , wtv)
 - writing improper things when asked to upload file (e.g. writing random numbers or characters)
+
+
+COD_Status
+- ALIVE
+- DEAD
+- MISSING
+- STUMPS
