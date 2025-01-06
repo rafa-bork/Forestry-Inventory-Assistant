@@ -2,6 +2,7 @@ import pandas as pd
 import sys
 
 def welcome_message():
+    print("---")
     print("Welcome to the Forest Inventory Companion Program!")
     print("Please add your tree data to the tree_data.csv file in the correct format")
     while True:
@@ -32,10 +33,10 @@ def help():
     print("         Pm                       Stone Pine                 Pinus pinea")
     print("         Ec                       Southern Blue Gum          Eucalyptus globulus")
     print("         Sb                       Cork Oak                   Quercus suber")
-    print("The 'DBH' column should have the trunk's measured diameter at breast hight (1.30m), in centimetres")
-    print("The 'height' column should have the tree's measured total height, in meters")
+    print("The 'DBH' column must have the trunk's measured diameter at breast height (1.30m), in centimetres")
+    print("The 'height' column must have the tree's measured total height, in meters")
     print("     You should at least provide one of these measurements")
-    print("The 'COD_status' column should have a code tahts represents the tree's capacity. The correspondence is in the following table")
+    print("The 'COD_status' column must have a code that represents the tree's capacity. The correspondence is in the following table")
     print("         COD_status              Tree Status")
     print("         1                       Alive")
     print("         2                       Dead")
@@ -43,37 +44,36 @@ def help():
     print("         4                       Stump")
     print("---")
 
-
-
-
-# Control if all the fundamental columns are present
-required_cols = {"tree_ID", "species", "DBH", "height", "COD_Status"}
-missing_cols = required_cols - set(df.columns)
-if missing_cols:
-     print(f"Warning: Missing required columns: {missing_cols}")
-     return []
-
-
-
 def read_data():
     print("Importing the Datatable...")
     try:
         df = pd.read_csv("tree_data.csv")
-        print("\nHere is the table:\n")
+        print("\nHere is the table:")
         print(df.to_string(index=False))
         return create_tree_objects(df)
     except Exception as e:
-        sys.exiti(f"Error: {e}")
-        
-
+        print(f"Error: {e}")
+        return []  # Return an empty list if there is an error
 
 class Tree:
+    tree_list = []  # This is the class-level list where all trees will be stored
+
     def __init__(self, tree_ID, species, dbh, height, cod_status):
         self.tree_ID = tree_ID
         self.species = species
         self.dbh = dbh
         self.height = height
         self.cod_status = cod_status
+
+        # Check if tree ID is unique
+        if self.is_duplicate_tree_ID(tree_ID):
+            print(f"Tree ID {tree_ID} is duplicate in the table, please correct and restart.")
+            sys.exit("Closing...")  # Exiting if tree ID is duplicate
+    
+    @staticmethod
+    def is_duplicate_tree_ID(tree_ID):
+        # Check if the tree ID already exists in the tree_list
+        return any(tree.tree_ID == tree_ID for tree in Tree.tree_list)
 
     def __repr__(self):
         return f"Tree(tree_ID={self.tree_ID}, species={self.species}, dbh={self.dbh}, height={self.height}, cod_status={self.cod_status})"
@@ -121,11 +121,7 @@ class Tree:
         self.set_height(height)
         self.set_cod_status(cod_status)
 
-
-# It's a pandas' Dataframe which containts several columns. 
-# At the beginning an empty list is created where tree objects are created.
-def create_tree_objects(df): 
-    trees = []
+def create_tree_objects(df):
     for _, row in df.iterrows():
         tree_ID = row.get("tree_ID", None)
         species = row.get("species", None)
@@ -140,29 +136,17 @@ def create_tree_objects(df):
         tree = Tree(tree_ID, species, dbh, height, cod_status)
         tree.set_attributes(species, dbh, height, cod_status)
         
-        trees.append(tree)
+        Tree.tree_list.append(tree)  # Add the tree to the Tree class-level list
 
-    return trees 
+        print("Data imported successfully.")
 
-
-def compute_basic_stats(trees):
-# Calculates and prints simple metrics about the trees list.
-# It includes: total number of trees, average DBH, average height
-# and how many tree exist for each "cod_status".
-
-
-
-
+    return Tree.tree_list  # Return the class-level list of trees
 
 def main():
-    welcome_message()  
-    trees = read_data()  
-    for tree in trees:
+    welcome_message()
+    tree_list = read_data()  
+    for tree in tree_list:
         print(tree)  
-
 
 if __name__ == "__main__":
     main()
-
- 
-
