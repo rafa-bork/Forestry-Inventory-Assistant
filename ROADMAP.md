@@ -10,7 +10,7 @@ Minimum Features
 - calculate stand metrics (dominant height, dominant diameter, density, basal area, total valume, total biomass, mean quadratic diametre, wilson factor)
 - create plots and graphs with the data (using mathplotlib probably)
 
-Display the values per hectare !!!!! (maybe input that after uploading csv)
+Display the values per hectare !!!!! (maybe input area manually before/after uploading csv; not sure how to do it inside .csv)
 
 
 Extras:
