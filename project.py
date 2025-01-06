@@ -130,7 +130,7 @@ class Tree:
         self.set_cod_status(cod_status)
 
     def __repr__(self):
-        return f"The Tree {self.tree_ID} ({self.species}) has a diameter of {self.dbh} cm and a height of ({self.height}) (cod_status={self.cod_status})"
+        return f"The Tree {self.tree_ID} ({self.species}) has a diameter of {self.dbh} cm and a height of {self.height} (cod_status={self.cod_status})"
 
 
 
@@ -157,37 +157,41 @@ def create_tree_objects(df):
 
 
 
+
+
 def compute_basic_stats(trees):
-# Calculates and prints simple metrics about the trees list.
-# It includes: total number of trees, average DBH, average height
-# and how many tree exist for each "cod_status".
+    """
+    Calculates and prints simple metrics about the list of trees.
+    Includes: total number of trees, average DBH, average height,
+    and counts for each 'cod_status'.
+    """
 
-# If no trees are present, no calculation.
-if not trees:
-    print("No trees available for metrics")
-    return
+    # If no trees are present, stop calculations
+    if not trees:
+        print("No trees available for metrics.")
+        return
 
- # Filter valid trees (trees with positive DBH and height)
+    # Filter valid trees (trees with positive DBH and height)
     valid_trees = [t for t in trees if t.dbh > 0 and t.height > 0]
 
-# Calculate total number of trees
-total_trees = len(trees)
+    # Calculate total number of trees
+    total_trees = len(trees)
 
-# Calculate average DBH and heightf or valid trees
-if valid_trees:
+    # Calculate average DBH and height for valid trees
+    if valid_trees:
         avg_dbh = sum(t.dbh for t in valid_trees) / len(valid_trees)
         avg_height = sum(t.height for t in valid_trees) / len(valid_trees)
     else:
         avg_dbh = 0
         avg_height = 0
 
-
-print("\n--- Basic Statistics ---")
-print(f"Total trees: {total_trees}")
-if valid_trees:
-    print(f"Avg DBH: {avg_dbh:.2f} cm | Avg Height: {avg_height:.2f} m")
-else:
-    print("No valid trees with positive DBH and height.")
+    # Print the metrics
+    print("\n--- Basic Statistics ---") # a more readeble message
+    print(f"Total trees: {total_trees}")
+    if valid_trees:
+        print(f"Avg DBH: {avg_dbh:.2f} cm | Avg Height: {avg_height:.2f} m")
+    else:
+        print("No valid trees with positive DBH and height.")
 
 
 

@@ -119,7 +119,7 @@ class Tree:
         self.set_cod_status(cod_status)
 
     def __repr__(self):
-        return f"The Tree {self.tree_ID} ({self.species}) has a diameter of {self.dbh} cm and a height of ({self.height}) (cod_status={self.cod_status})"
+        return f"The Tree {self.tree_ID} ({self.species}) has a diameter of {self.dbh} cm and a height of {self.height} (cod_status={self.cod_status})"
 
 def create_tree_objects(df):
     for _, row in df.iterrows():
