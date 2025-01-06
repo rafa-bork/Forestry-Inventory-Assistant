@@ -7,7 +7,10 @@ you debated certain design choices, explaining why you made them. Ensure you all
 sufficient time and energy to writing a README.md that documents your project thoroughly.
 
 
-
+------------------------------------------------------------------
 
 # Calculating forest inventory metrics with python algorithm
+
+This program takes the forest inventory csv file provided by the user and makes some standard calculations.
+These calculations are ...
 

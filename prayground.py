@@ -1,4 +1,3 @@
-import pandas as pd
 import sys
 
 def welcome_message():
@@ -16,7 +15,7 @@ def welcome_message():
             return
         else:
             print("If you want to close the program type 'exit'")
-
+                  
 def help():
     print("---")
     print("This Program is a tool to help in the characterization and analysis of a tree stand")
@@ -43,69 +42,8 @@ def help():
     print("         4                       Stump")
     print("---")
 
-class Tree:
-    def __init__(self, tree_ID, species, dbh, height, cod_status):
-        self.tree_ID = tree_ID
-        self.species = species
-        self.dbh = dbh
-        self.height = height
-        self.cod_status = cod_status
-
-    def __repr__(self):
-        return f"Tree(tree_ID={self.tree_ID}, species={self.species}, dbh={self.dbh}, height={self.height}, cod_status={self.cod_status})"
-
-def read_my_data(filepath=None):
-    print("Importing the Datatable...")
-    try:
-        # Attempt to read the CSV file into a pandas DataFrame
-        df = pd.read_csv(filepath)
-        print("\nHere is the table:\n")
-        print(df.to_string(index=False))  # Display the DataFrame as a formatted table
-
-        # Create a list to store Tree objects
-        trees = []
-
-        # Iterate over each row in the DataFrame and create Tree objects
-        for _, row in df.iterrows():
-            tree_ID = row.get("tree_ID", None)
-            species = row.get("species", "Unknown")
-
-            # Convert DBH to float; if it fails, set to 0
-            try:
-                dbh = float(row.get("DBH", 0))
-            except ValueError:
-                dbh = 0.0
-
-            # Convert height to float
-            try:
-                height = float(row.get("height", 0))
-            except ValueError:
-                height = 0.0
-
-            # Tree status (COD_Status)
-            cod_status = row.get("COD_Status", "ALIVE")
-
-            # Create a Tree object and add it to the list
-            tree = Tree(tree_ID, species, dbh, height, cod_status)
-            trees.append(tree)
-
-        # Return the list of Tree objects
-        return trees
-
-    except FileNotFoundError:
-        print(f"Error: File not found at {filepath}")
-    except pd.errors.ParserError as e:
-        print(f"Error parsing CSV: {e}")
-    except Exception as e:
-        print(f"An error occurred: {e}")
-
 
 def main():
-    welcome_message()  
-    trees = read_my_data()  
-    for tree in trees:
-        print(tree)  
+    welcome_message()
 
-
-if __name__ == "__main__":
-    main()
+main()
