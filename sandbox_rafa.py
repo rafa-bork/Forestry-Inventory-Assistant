@@ -75,9 +75,6 @@ class Tree:
         # Check if the tree ID already exists in the tree_list
         return any(tree.tree_ID == tree_ID for tree in Tree.tree_list)
 
-    def __repr__(self):
-        return f"Tree(tree_ID={self.tree_ID}, species={self.species}, dbh={self.dbh}, height={self.height}, cod_status={self.cod_status})"
-
     def set_species(self, species):
         if species not in ["Pb", "Pm", "Ec", "Sb"]:
             print("There is a species value that is not acceptable (not 'Pb', 'Pm', 'Ec', or 'Sb'), please correct and restart")
@@ -121,6 +118,9 @@ class Tree:
         self.set_height(height)
         self.set_cod_status(cod_status)
 
+    def __repr__(self):
+        return f"The Tree {self.tree_ID} ({self.species}) has a diameter of {self.dbh} cm and a height of ({self.height}) (cod_status={self.cod_status})"
+
 def create_tree_objects(df):
     for _, row in df.iterrows():
         tree_ID = row.get("tree_ID", None)
@@ -138,7 +138,7 @@ def create_tree_objects(df):
         
         Tree.tree_list.append(tree)  # Add the tree to the Tree class-level list
 
-        print("Data imported successfully.")
+    print("Data imported successfully.")  
 
     return Tree.tree_list  # Return the class-level list of trees
 

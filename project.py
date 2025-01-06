@@ -59,15 +59,16 @@ def read_data():
     print("Importing the Datatable...")
     try:
         df = pd.read_csv("tree_data.csv")
-        print("\nHere is the table:\n")
+        print("\nHere is the table:")
         print(df.to_string(index=False))
         return create_tree_objects(df)
     except Exception as e:
-        sys.exiti(f"Error: {e}")
-        
-
+        print(f"Error: {e}")
+        return []  # Return an empty list if there is an error
 
 class Tree:
+    tree_list = []  # This is the class-level list where all trees will be stored
+
     def __init__(self, tree_ID, species, dbh, height, cod_status):
         self.tree_ID = tree_ID
         self.species = species
@@ -75,8 +76,15 @@ class Tree:
         self.height = height
         self.cod_status = cod_status
 
-    def __repr__(self):
-        return f"Tree(tree_ID={self.tree_ID}, species={self.species}, dbh={self.dbh}, height={self.height}, cod_status={self.cod_status})"
+        # Check if tree ID is unique
+        if self.is_duplicate_tree_ID(tree_ID):
+            print(f"Tree ID {tree_ID} is duplicate in the table, please correct and restart.")
+            sys.exit("Closing...")  # Exiting if tree ID is duplicate
+    
+    @staticmethod
+    def is_duplicate_tree_ID(tree_ID):
+        # Check if the tree ID already exists in the tree_list
+        return any(tree.tree_ID == tree_ID for tree in Tree.tree_list)
 
     def set_species(self, species):
         if species not in ["Pb", "Pm", "Ec", "Sb"]:
@@ -121,11 +129,12 @@ class Tree:
         self.set_height(height)
         self.set_cod_status(cod_status)
 
+    def __repr__(self):
+        return f"The Tree {self.tree_ID} ({self.species}) has a diameter of {self.dbh} cm and a height of ({self.height}) (cod_status={self.cod_status})"
 
-# It's a pandas' Dataframe which containts several columns. 
-# At the beginning an empty list is created where tree objects are created.
-def create_tree_objects(df): 
-    trees = []
+
+
+def create_tree_objects(df):
     for _, row in df.iterrows():
         tree_ID = row.get("tree_ID", None)
         species = row.get("species", None)
@@ -140,9 +149,12 @@ def create_tree_objects(df):
         tree = Tree(tree_ID, species, dbh, height, cod_status)
         tree.set_attributes(species, dbh, height, cod_status)
         
-        trees.append(tree)
+        Tree.tree_list.append(tree)  # Add the tree to the Tree class-level list
 
-    return trees 
+    print("Data imported successfully.")
+
+    return Tree.tree_list  # Return the class-level list of trees
+
 
 
 def compute_basic_stats(trees):
@@ -150,6 +162,13 @@ def compute_basic_stats(trees):
 # It includes: total number of trees, average DBH, average height
 # and how many tree exist for each "cod_status".
 
+# 1. If no trees are present, no calculation.
+if not trees:
+    print("No trees available for metrics")
+    return
+
+# Calculate average DBH and height 
+valid_trees
 
 
 
