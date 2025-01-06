@@ -162,14 +162,32 @@ def compute_basic_stats(trees):
 # It includes: total number of trees, average DBH, average height
 # and how many tree exist for each "cod_status".
 
-# 1. If no trees are present, no calculation.
+# If no trees are present, no calculation.
 if not trees:
     print("No trees available for metrics")
     return
 
-# Calculate average DBH and height 
-valid_trees
+ # Filter valid trees (trees with positive DBH and height)
+    valid_trees = [t for t in trees if t.dbh > 0 and t.height > 0]
 
+# Calculate total number of trees
+total_trees = len(trees)
+
+# Calculate average DBH and heightf or valid trees
+if valid_trees:
+        avg_dbh = sum(t.dbh for t in valid_trees) / len(valid_trees)
+        avg_height = sum(t.height for t in valid_trees) / len(valid_trees)
+    else:
+        avg_dbh = 0
+        avg_height = 0
+
+
+print("\n--- Basic Statistics ---")
+print(f"Total trees: {total_trees}")
+if valid_trees:
+    print(f"Avg DBH: {avg_dbh:.2f} cm | Avg Height: {avg_height:.2f} m")
+else:
+    print("No valid trees with positive DBH and height.")
 
 
 
