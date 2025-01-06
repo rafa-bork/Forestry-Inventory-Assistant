@@ -3,14 +3,15 @@ Forest Inventory Management System
 
 
 Minimum Features
-- create a blueprint .csv file  
+- create a blueprint .csv file (maybe also create a plot blueplrint csv? with area, age, f_exp, density, hdom, etc)
+- create welcome message
 - importing the csv
 - importing the attributes to an object
 - calculate tree metrics (volumes, biomass)
 - calculate stand metrics (dominant height, dominant diameter, density, basal area, total valume, total biomass, mean quadratic diametre, wilson factor)
 - create plots and graphs with the data (using mathplotlib probably)
 
-Display the values per hectare !!!!! (maybe input area manually before/after uploading csv; not sure how to do it inside .csv)
+Display the values per hectare !!!!! (maybe input area manually before/after uploading csv; or crate new plot csv)
 
 
 Extras:
@@ -53,3 +54,5 @@ COD_Status
 - DEAD
 - MISSING
 - STUMPS
+
+
