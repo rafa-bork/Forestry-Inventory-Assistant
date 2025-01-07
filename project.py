@@ -29,6 +29,28 @@ def welcome_message():
             print("The file is not a Comma Separated Values (.csv) file, please correct and try again.")
             print("---")
 
+# main menu options for the program
+def main_menu():
+    print("---")
+    print("Please enter the desired number:")
+    print("1) Calculate stand metrics")
+    print("2) Calculate tree metrics")
+    print("3) Exit")
+    print("4) Export data to CSV") # New option for exporting data
+    choice = input("Enter your choice: ").strip()
+
+    if choice == '1':
+        compute_basic_stats(Tree.tree_list)  # Placeholder for stand metrics calculation
+    elif choice == '2':
+        create_metrics_table(Tree.tree_list)  # Display the tree metrics table
+    elif choice == '3':
+        print("Exiting program...")
+        sys.exit("Closing...\n")
+    else:
+        print("Invalid choice, please try again.")
+        main_menu()  # Recursive call if the user enters an invalid choice
+
+
 def help():
     print("---")
     print("This Program is a tool to help in the characterization and analysis of a tree stand")
@@ -56,14 +78,22 @@ def help():
     print("---")
 
 
-
-
 # Control if all the fundamental columns are present
-required_cols = {"tree_ID", "species", "DBH", "height", "COD_Status"}
-missing_cols = required_cols - set(df.columns)
-if missing_cols:
-     print(f"Warning: Missing required columns: {missing_cols}")
-     return []
+def validate_columns(dataframe):
+    required_columns = {"tree_ID", "species", "DBH", "height", "COD_Status"}
+    dataframe_columns = set(dataframe.columns)
+    missing_columns = required_columns - dataframe_columns
+    extra_columns = dataframe_columns - required_columns
+    if missing_columns:
+        print(f"There are required columns missing in the file: {missing_columns}")
+        sys.exit("Closing...\n")
+    if extra_columns:
+        print(f"There are extra columns in the file: {extra_columns}")
+        print("Are you sure? The extra columns will not be taen into account by the programme.")
+        answer = input("Press <Enter> to continue, press any other butten to close")
+        if answer != "":
+            sys.exit("Closing...\n")
+    return
 
 
 #turn the csv into objects with attributes
@@ -75,6 +105,7 @@ def read_data(file_path):
         file_path = "tree_data.csv"
     try:
         df = pd.read_csv(file_path)
+        validate_columns(df)
         tree_objects = create_tree_objects(df)
         print(f"\nHere is the table: {file_path}")
         print(df.to_string(index=False))
@@ -150,8 +181,34 @@ class Tree:
 
     def __repr__(self):
         return f"The Tree {self.tree_ID} ({self.species}) has a diameter of {self.dbh} cm and a height of {self.height} (cod_status={self.cod_status})"
+    
+    # adding tree volume and biomass to tree class
+    def calculate_volume(self):
+        return calculate_tree_volume(self.dbh, self.height)
 
+    def calculate_biomass(self):
+        return calculate_trunk_biomass(self.dbh, self.height)
 
+    def calculate_merchant_volume(self):
+        return calculate_vu_st(self.dbh, self.height)
+    # adding a response to user with volume and biomass calculations
+    def __repr2__(self):
+        volume = self.calculate_volume()
+        biomass = self.calculate_biomass()
+        merchant_volume = self.calculate_merchant_volume()
+        return (f"Tree {self.tree_ID} ({self.species}): "
+                f"Volume: {volume:.2f} m³, Biomass: {biomass:.2f} kg, "
+                f"Merchant Volume: {merchant_volume:.2f} m³")
+
+# calculating tree volume and biomass
+def calculate_tree_volume(dbh, height):
+    return 0.7520 * (dbh / 100) ** 2.0706 * height ** 0.8031
+
+def calculate_vu_st(dbh, height):
+    return 0.0000247 * dbh ** 2.1119 * height ** 0.9261
+
+def calculate_trunk_biomass(dbh, height):
+    return 0.0146 * dbh ** 1.94687 * height ** 1.106577
 
 def create_tree_objects(df):
     for _, row in df.iterrows():
@@ -213,16 +270,47 @@ def compute_basic_stats(trees):
         print("No valid trees with positive DBH and height.")
 
 
+def create_metrics_table(trees):
+    """
+    Creates a pandas DataFrame containing metrics for each tree
+    and prints the table in a formatted way.
+    """
+    # Check if there are any trees
+    if not trees:
+        print("No trees available to display metrics.")
+        return
+
+    # Prepare data for the DataFrame
+    data = {
+        "Tree ID": [tree.tree_ID for tree in trees],
+        "Species": [tree.species for tree in trees],
+        "DBH (cm)": [tree.dbh for tree in trees],
+        "Height (m)": [tree.height for tree in trees],
+        "Volume (m³)": [tree.calculate_volume() for tree in trees],
+        "Biomass (kg)": [tree.calculate_biomass() for tree in trees],
+        "Merchant Volume (m³)": [tree.calculate_merchant_volume() for tree in trees],
+        "COD Status": [tree.cod_status for tree in trees],
+    }
+
+    # Create the DataFrame
+    metrics_df = pd.DataFrame(data)
+
+     # Export the DataFrame to a CSV file
+    try:
+        metrics_df.to_csv(filename, index=False)
+        print(f"Data successfully exported to {filename}.")
+    except Exception as e:
+        print(f"Failed to export data: {e}")
+
+    # Print the DataFrame
+    print("\n--- Tree Metrics Table ---")
+    print(metrics_df.to_string(index=False))
 
 def main():
     file_path = welcome_message()
-    tree_list = read_data(file_path)  
-    for tree in tree_list:
-        print(tree)  
-
+    tree_list = read_data(file_path)
+    # After the data is loaded, show the main menu
+    main_menu()
 
 if __name__ == "__main__":
     main()
-
- 
-
