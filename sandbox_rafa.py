@@ -4,19 +4,31 @@ import sys
 def welcome_message():
     print("---")
     print("Welcome to the Forest Inventory Companion Program!")
+    print("---")
     print("Please add your tree data to the tree_data.csv file in the correct format")
     while True:
-        print("If help is needed type 'help', if the information was correctly added press <Enter>")
-        welcome = input().strip().casefold()
-        if welcome == "help": 
+        print("If help is needed type 'help'")
+        print("If the information was correctly added press <Enter>")
+        print('If you prefer, write the file\'s path in the following format: "C:\\Users\\rafael\\Downloads\\tree_data.csv"')
+        print("If you want to close the program type 'exit'.")
+        welcome = input("  ").strip()
+
+        if welcome.startswith('"') and welcome.endswith('"'):
+            welcome = welcome[1:-1]  # Remove the first and last characters (the quotes)
+        
+        if welcome.casefold() == "help":
             help()
-        elif welcome == "exit":
+        elif welcome.casefold() == "exit":
             print("Exiting program...")
-            sys.exit("Closing...")
+            sys.exit("Closing...\n\n")
         elif welcome == "":
             return
+        elif welcome.endswith('.csv') or welcome.endswith('.csv"'):
+            return welcome
         else:
-            print("If you want to close the program type 'exit'")
+            print("The file is not a Comma Separated Values (.csv) file, please correct and try again.")
+            print("---")
+            
 
 def help():
     print("---")
@@ -44,16 +56,41 @@ def help():
     print("         4                       Stump")
     print("---")
 
-def read_data():
+def read_data(file_path):
+    print("")
     print("Importing the Datatable...")
+    if file_path is None:
+        file_path = "tree_data.csv"
     try:
-        df = pd.read_csv("tree_data.csv")
-        print("\nHere is the table:")
+        df = pd.read_csv(file_path)
+        validate_columns(df)
+        tree_objects = create_tree_objects(df)
+        print(f"\nHere is the table: {file_path}")
         print(df.to_string(index=False))
-        return create_tree_objects(df)
+        print("")
+        return tree_objects
     except Exception as e:
-        print(f"Error: {e}")
-        return []  # Return an empty list if there is an error
+        print("")
+        print(f"There was an error reading the file, {e}")
+        sys.exit("Closing...\n")
+
+# Control if all the fundamental columns are present
+def validate_columns(dataframe):
+    required_columns = {"tree_ID", "species", "DBH", "height", "COD_Status"}
+    dataframe_columns = set(dataframe.columns)
+    missing_columns = required_columns - dataframe_columns
+    extra_columns = dataframe_columns - required_columns
+    if missing_columns:
+        print(f"There are required columns missing in the file: {missing_columns}")
+        sys.exit("Closing...\n")
+    if extra_columns:
+        print(f"There are extra columns in the file: {extra_columns}")
+        print("Are you sure? The extra columns will not be taen into account by the programme.")
+        answer = input("Press <Enter> to continue, press any other butten to close")
+        if answer != "":
+            sys.exit("Closing...\n")
+    return
+
 
 class Tree:
     tree_list = []  # This is the class-level list where all trees will be stored
@@ -68,7 +105,7 @@ class Tree:
         # Check if tree ID is unique
         if self.is_duplicate_tree_ID(tree_ID):
             print(f"Tree ID {tree_ID} is duplicate in the table, please correct and restart.")
-            sys.exit("Closing...")  # Exiting if tree ID is duplicate
+            sys.exit("Closing...\n")  # Exiting if tree ID is duplicate
     
     @staticmethod
     def is_duplicate_tree_ID(tree_ID):
@@ -78,7 +115,7 @@ class Tree:
     def set_species(self, species):
         if species not in ["Pb", "Pm", "Ec", "Sb"]:
             print("There is a species value that is not acceptable (not 'Pb', 'Pm', 'Ec', or 'Sb'), please correct and restart")
-            sys.exit("Closing...")  # Exiting if invalid species
+            sys.exit("Closing...\n")  # Exiting if invalid species
         self.species = species
 
     def set_dbh(self, dbh):
@@ -86,30 +123,30 @@ class Tree:
             dbh = float(dbh)
             if dbh < 0:  # Checks if the value is negative
                 print("DBH cannot be negative, please correct and restart.")
-                sys.exit("Closing...")  # Exits the program if DBH is negative
+                sys.exit("Closing...\n")  # Exits the program if DBH is negative
             elif dbh < 7.5:  # Checks if the diameter is large enough to be considered a tree
                 print("DBH cannot be less than 7.5, as it is not considered a tree, please correct and restart.")
-                sys.exit("Closing...")  # Exits the program if DBH is less than 7.5
+                sys.exit("Closing...\n")  # Exits the program if DBH is less than 7.5
             self.dbh = dbh
         except ValueError:
             print("There are DBH values that cannot be converted to float, please correct and restart.")
-            sys.exit("Closing...")  # Exits the program if DBH cannot be converted
+            sys.exit("Closing...\n")  # Exits the program if DBH cannot be converted
 
     def set_height(self, height):
         try:
             height = float(height)
             if height < 0:  # Checks if the height is negative
                 print("Height cannot be negative. Please correct and restart.")
-                sys.exit("Closing...")  # Exits the program if height is negative
+                sys.exit("Closing...\n")  # Exits the program if height is negative
             self.height = height
         except ValueError:
             print("There are height values that cannot be converted to float. Please correct and restart.")
-            sys.exit("Closing...")  # Exits the program if height cannot be converted
+            sys.exit("Closing...\n")  # Exits the program if height cannot be converted
 
     def set_cod_status(self, cod_status):
         if cod_status not in [1, 2, 3, 4]:
             print("COD_Status value is invalid, please correct and restart")
-            sys.exit("Closing...")  # Exiting if COD_Status is invalid
+            sys.exit("Closing...\n")  # Exiting if COD_Status is invalid
         self.cod_status = cod_status
 
     def set_attributes(self, species, dbh, height, cod_status):
@@ -131,7 +168,7 @@ def create_tree_objects(df):
         
         if dbh is None and height is None:
             print("There are trees without DBH and height values, please correct and restart")
-            sys.exit("Closing...")  # Exiting if both DBH and height are missing
+            sys.exit("Closing...\n")  # Exiting if both DBH and height are missing
         
         tree = Tree(tree_ID, species, dbh, height, cod_status)
         tree.set_attributes(species, dbh, height, cod_status)
@@ -143,8 +180,8 @@ def create_tree_objects(df):
     return Tree.tree_list  # Return the class-level list of trees
 
 def main():
-    welcome_message()
-    tree_list = read_data()  
+    file_path = welcome_message()
+    tree_list = read_data(file_path)  
     for tree in tree_list:
         print(tree)  
 

@@ -2,20 +2,32 @@ import pandas as pd
 import sys
 
 def welcome_message():
+    print("---")
     print("Welcome to the Forest Inventory Companion Program!")
+    print("---")
     print("Please add your tree data to the tree_data.csv file in the correct format")
     while True:
-        print("If help is needed type 'help', if the information was correctly added press <Enter>")
-        welcome = input().strip().casefold()
-        if welcome == "help": 
+        print("If help is needed type 'help'")
+        print("If the information was correctly added press <Enter>")
+        print('If you prefer, write the file\'s path in the following format: "C:\\Users\\rafael\\Downloads\\tree_data.csv"')
+        print("If you want to close the program type 'exit'.")
+        welcome = input("  ").strip()
+
+        if welcome.startswith('"') and welcome.endswith('"'):
+            welcome = welcome[1:-1]  # Remove the first and last characters (the quotes)
+        
+        if welcome.casefold() == "help":
             help()
-        elif welcome == "exit":
+        elif welcome.casefold() == "exit":
             print("Exiting program...")
-            sys.exit("Closing...")
+            sys.exit("Closing...\n\n")
         elif welcome == "":
             return
+        elif welcome.endswith('.csv') or welcome.endswith('.csv"'):
+            return welcome
         else:
-            print("If you want to close the program type 'exit'")
+            print("The file is not a Comma Separated Values (.csv) file, please correct and try again.")
+            print("---")
 
 def help():
     print("---")
@@ -54,17 +66,24 @@ if missing_cols:
      return []
 
 
+#turn the csv into objects with attributes
 
-def read_data():
+def read_data(file_path):
+    print("")
     print("Importing the Datatable...")
+    if file_path is None:
+        file_path = "tree_data.csv"
     try:
-        df = pd.read_csv("tree_data.csv")
-        print("\nHere is the table:")
+        df = pd.read_csv(file_path)
+        tree_objects = create_tree_objects(df)
+        print(f"\nHere is the table: {file_path}")
         print(df.to_string(index=False))
-        return create_tree_objects(df)
+        print("")
+        return tree_objects
     except Exception as e:
-        print(f"Error: {e}")
-        return []  # Return an empty list if there is an error
+        print("")
+        print(f"There was an error reading the file, {e}")
+        sys.exit("Closing...\n")
 
 class Tree:
     tree_list = []  # This is the class-level list where all trees will be stored
@@ -196,9 +215,9 @@ def compute_basic_stats(trees):
 
 
 def main():
-    welcome_message()  
-    trees = read_data()  
-    for tree in trees:
+    file_path = welcome_message()
+    tree_list = read_data(file_path)  
+    for tree in tree_list:
         print(tree)  
 
 
