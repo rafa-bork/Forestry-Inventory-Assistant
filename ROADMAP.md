@@ -39,6 +39,7 @@ Extras:
 - model trees (height or diameter)
 - cubing equations (for stands without diametre and height only hdom and g)
 - biomass wood, bark, trunk, branches, leaves, canopy, roots
+- create custom error messages
 
 
 possible errors to catch:

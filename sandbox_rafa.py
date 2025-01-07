@@ -1,5 +1,6 @@
 import pandas as pd
 import sys
+import pytest
 
 def welcome_message():
     print("---")
@@ -11,24 +12,60 @@ def welcome_message():
         print("If the information was correctly added press <Enter>")
         print('If you prefer, write the file\'s path in the following format: "C:\\Users\\rafael\\Downloads\\tree_data.csv"')
         print("If you want to close the program type 'exit'.")
-        welcome = input("  ").strip()
+        welcome = input("Path to csv: ").strip()
 
         if welcome.startswith('"') and welcome.endswith('"'):
             welcome = welcome[1:-1]  # Remove the first and last characters (the quotes)
-        
         if welcome.casefold() == "help":
             help()
         elif welcome.casefold() == "exit":
-            print("Exiting program...")
-            sys.exit("Closing...\n\n")
+            sys.exit("Exiting program...\n\n")
         elif welcome == "":
-            return
+            return None, None  # Return None if user presses Enter without entering a file path
         elif welcome.endswith('.csv') or welcome.endswith('.csv"'):
-            return welcome
+            # Now ask for the stand area in square meters
+            while True:
+                try:
+                    stand_area = float(input("Please provide the stand area in square meters: ").strip())
+                    if stand_area <= 0:
+                        print("The area must be a positive number. Please try again.")
+                    else:
+                        break
+                except ValueError:
+                    print("Invalid input. Please enter a valid number for the area.")
+
+            return welcome, stand_area  # Return both file path and stand area
         else:
             print("The file is not a Comma Separated Values (.csv) file, please correct and try again.")
             print("---")
-            
+
+# main menu options for the program
+def main_menu():
+    while True:  # Loop to allow repeating the menu
+        print("---")
+        print("Main Menu")
+        print("---")
+        print("Please enter the desired number:")
+        print("1) Calculate stand metrics")
+        print("2) Calculate tree metrics")
+        print("3) Export to CSV")
+        print("4) Exit")
+        choice = input("Enter your choice: ").strip()
+
+        if choice == '1':
+            compute_basic_stats(Tree.tree_list)  # Placeholder for stand metrics calculation
+            continue  # Repeats the main menu after completing the choice
+        elif choice == '2':
+            create_metrics_table(Tree.tree_list)  # Display the tree metrics table
+            continue  # Repeats the main menu after completing the choice
+        elif choice == '3':
+            export_metrics_to_csv(Tree.tree_list)  # Exits the current function, allowing the program to go back to the previous menu
+        elif choice == '4':
+            print("Exiting program...")
+            sys.exit("Closing...\n")
+        else:
+            print("Invalid choice, please try again.")
+
 
 def help():
     print("---")
@@ -56,7 +93,10 @@ def help():
     print("         4                       Stump")
     print("---")
 
+
+#turn the csv into objects with attributes
 def read_data(file_path):
+    Tree.clear_tree_list()
     print("Importing the Datatable...\n")
     if file_path is None:
         file_path = "tree_data.csv"
@@ -64,14 +104,12 @@ def read_data(file_path):
         df = pd.read_csv(file_path)
         validate_columns(df)
         tree_objects = create_tree_objects(df)
-        #print(f"\nHere is the table: {file_path}")
-        #print(df.to_string(index=False))
-        #print("")
-        return tree_objects
-    except Exception as e:
+        print(f"\nHere is the table: {file_path}")
+        print(df.to_string(index=False))
         print("")
-        print(f"There was an error reading the file, {e}")
-        sys.exit("Closing...\n")
+        return tree_objects
+    except FileNotFoundError:
+        raise FileNotFoundError("There was an error reading the file")
 
 # Control if all the fundamental columns are present
 def validate_columns(dataframe):
@@ -80,8 +118,7 @@ def validate_columns(dataframe):
     missing_columns = required_columns - dataframe_columns
     extra_columns = dataframe_columns - required_columns
     if missing_columns:
-        print(f"There are required columns missing in the file: {missing_columns}")
-        sys.exit("Closing...\n")
+        raise ValueError(f"There are required columns missing in the file: {missing_columns}")
     if extra_columns:
         print(f"There are extra columns in the file: {extra_columns}")
         print("Are you sure? The extra columns will not be taken into account by the programme.")
@@ -92,6 +129,11 @@ def validate_columns(dataframe):
 class Tree:
     tree_list = []  # This is the class-level list where all trees will be stored
 
+    @classmethod
+    def clear_tree_list(cls):
+        cls.tree_list.clear()
+
+
     def __init__(self, tree_ID, species, dbh, height, cod_status):
         self.tree_ID = tree_ID
         self.species = species
@@ -101,8 +143,7 @@ class Tree:
 
         # Check if tree ID is unique
         if self.is_duplicate_tree_ID(tree_ID):
-            print(f"Tree ID {tree_ID} is duplicate in the table, please correct and restart.")
-            sys.exit("Closing...\n")  # Exiting if tree ID is duplicate
+            raise ValueError(f"Tree ID {tree_ID} is duplicate in the table, please correct and restart.") # Exiting if tree ID is duplicate
     
     @staticmethod
     def is_duplicate_tree_ID(tree_ID):
@@ -112,50 +153,41 @@ class Tree:
     def set_tree_id(self, tree_id):
         try:
             if tree_id <= 0:  # Id needs to be positive
-                print("There is a non positive tree_id value, please correct and restart")
-                sys.exit("Closing...\n")
+                raise ValueError("There is a non positive tree_id value, please correct and restart")
             elif tree_id == int(tree_id):
                 self.tree_id = tree_id
         except ValueError:
-            print("There is a non integer tree_id value, please correct and restart")
-            sys.exit("Closing...\n")
+            raise ValueError("There is a non integer tree_id value, please correct and restart")
 
 
     def set_species(self, species):
         if species not in ["Pb", "Pm", "Ec", "Sb"]:
-            print("There is a species value that is not acceptable (not 'Pb', 'Pm', 'Ec', or 'Sb'), please correct and restart")
-            sys.exit("Closing...\n")  # Exiting if invalid species
+            raise ValueError("There is a species value that is not acceptable (not 'Pb', 'Pm', 'Ec', or 'Sb'), please correct and restart") # Exiting if invalid species
         self.species = species
 
     def set_dbh(self, dbh):
+        if dbh < 0:  # Checks if the value is negative
+            raise ValueError("There is a negative DBH value, please correct and restart.") # Exits the program if DBH is negative
+        elif dbh < 7.5:  # Checks if the diameter is large enough to be considered a tree
+            raise ValueError("There is a DBH value that's less than 7.5, this is not considered a tree, please correct and restart.") # Exits the program if DBH is less than 7.5
         try:
             dbh = float(dbh)
-            if dbh < 0:  # Checks if the value is negative
-                print("There is a negative DBH value, please correct and restart.")
-                sys.exit("Closing...\n")  # Exits the program if DBH is negative
-            elif dbh < 7.5:  # Checks if the diameter is large enough to be considered a tree
-                print("There is a DBH value that's less than 7.5, this is not considered a tree, please correct and restart.")
-                sys.exit("Closing...\n")  # Exits the program if DBH is less than 7.5
             self.dbh = dbh
         except ValueError:
-            print("There is a DBH value that cannot be converted to float, please correct and restart.")
-            sys.exit("Closing...\n")  # Exits the program if DBH cannot be converted
+            raise ValueError("There is a DBH value that cannot be converted to float, please correct and restart.") # Exits the program if DBH cannot be converted
 
     def set_height(self, height):
         try:
             height = float(height)
             if height < 0:  # Checks if the height is negative
-                print("There is a negative height value. Please correct and restart.")
-                sys.exit("Closing...\n")  # Exits the program if height is negative
+                raise ValueError("There is a negative height value. Please correct and restart.") # Exits the program if height is negative
             self.height = height
         except ValueError:
-            print("There is a height value that cannot be converted to float. Please correct and restart.")
-            sys.exit("Closing...\n")  # Exits the program if height cannot be converted
+            raise ValueError("There is a height value that cannot be converted to float. Please correct and restart.") # Exits the program if height cannot be converted
 
     def set_cod_status(self, cod_status):
         if cod_status not in [1, 2, 3, 4]:
-            print("There is an invalid COD_status value, please correct and restart")
-            sys.exit("Closing...\n")  # Exiting if COD_Status is invalid
+            raise ValueError("There is an invalid COD_status value, please correct and restart") # Exiting if COD_Status is invalid
         self.cod_status = cod_status
 
     def set_attributes(self, tree_id, species, dbh, height, cod_status):
@@ -165,6 +197,8 @@ class Tree:
         self.set_height(height)
         self.set_cod_status(cod_status)
 
+    def __repr__(self):
+        return f"The Tree {self.tree_ID} ({self.species}) has a diameter of {self.dbh} cm and a height of {self.height} (cod_status={self.cod_status})"
 
     # adding tree volume and biomass to tree class
     def calculate_volume(self):
@@ -194,7 +228,6 @@ def calculate_vu_st(dbh, height):
 def calculate_trunk_biomass(dbh, height):
     return 0.0146 * dbh ** 1.94687 * height ** 1.106577
 
-
 def create_tree_objects(df):
     for _, row in df.iterrows():
         tree_ID = row.get("tree_ID", None)
@@ -204,17 +237,55 @@ def create_tree_objects(df):
         cod_status = row.get("COD_Status", 1)
         
         if dbh is None and height is None:
-            print("There are trees without DBH and height values, please correct and restart")
-            sys.exit("Closing...\n")  # Exiting if both DBH and height are missing
+            raise ValueError("There are trees without DBH and height values, please correct and restart") # Exiting if both DBH and height are missing
         
         tree = Tree(tree_ID, species, dbh, height, cod_status)
         tree.set_attributes(tree_ID, species, dbh, height, cod_status)
         
         Tree.tree_list.append(tree)  # Add the tree to the Tree class-level list
 
-    print("Data imported successfully.")  
+    print("Data imported successfully.")
 
     return Tree.tree_list  # Return the class-level list of trees
+
+
+
+
+
+def compute_basic_stats(trees):
+    """
+    Calculates and prints simple metrics about the list of trees.
+    Includes: total number of trees, average DBH, average height,
+    and counts for each 'cod_status'.
+    """
+
+    # If no trees are present, stop calculations
+    if not trees:
+        print("No trees available for metrics.")
+        return
+
+    # Filter valid trees (trees with positive DBH and height)
+    valid_trees = [t for t in trees if t.dbh > 0 and t.height > 0]
+
+    # Calculate total number of trees
+    total_trees = len(trees)
+
+    # Calculate average DBH and height for valid trees
+    if valid_trees:
+        avg_dbh = sum(t.dbh for t in valid_trees) / len(valid_trees)
+        avg_height = sum(t.height for t in valid_trees) / len(valid_trees)
+    else:
+        avg_dbh = 0
+        avg_height = 0
+
+    # Print the metrics
+    print("\n--- Basic Statistics ---") # a more readeble message
+    print(f"Total trees: {total_trees}")
+    if valid_trees:
+        print(f"Avg DBH: {avg_dbh:.2f} cm | Avg Height: {avg_height:.2f} m")
+    else:
+        print("No valid trees with positive DBH and height.")
+
 
 def create_metrics_table(trees):
     """
@@ -225,6 +296,18 @@ def create_metrics_table(trees):
     if not trees:
         print("No trees available to display metrics.")
         return
+
+
+def export_metrics_to_csv(trees, filename="tree_metrics.csv"):
+    """
+    Exports the tree metrics to a CSV file.
+    """
+    # Check if there are any trees
+    if not trees:
+        print("No data available to export.")
+        return
+
+
 
     # Prepare data for the DataFrame
     data = {
@@ -241,14 +324,22 @@ def create_metrics_table(trees):
     # Create the DataFrame
     metrics_df = pd.DataFrame(data)
 
+ # Export the DataFrame to a CSV file
+    try:
+        metrics_df.to_csv(filename, index=False)
+        print(f"Data successfully exported to {filename}.")
+    except Exception as e:
+        print(f"Failed to export data: {e}")
+
     # Print the DataFrame
     print("\n--- Tree Metrics Table ---")
     print(metrics_df.to_string(index=False))
 
 def main():
-    file_path = welcome_message()
+    file_path, stand_area = welcome_message()
     tree_list = read_data(file_path)
-    create_metrics_table(tree_list)
+    # After the data is loaded, show the main menu
+    main_menu()
 
 if __name__ == "__main__":
     main()
