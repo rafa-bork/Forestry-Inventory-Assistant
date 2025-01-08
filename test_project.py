@@ -1,5 +1,5 @@
 import pytest
-from unittest import mock
+from unittest.mock import patch
 from project import *
 
 def test_empty_csv():
@@ -9,10 +9,9 @@ def test_empty_csv():
 
 def test_extra_column_csv():
     file_path = r"more_tree_data\tree_data_extracolumn.csv"
-    with mock.patch('builtins.input', return_value='x'), mock.patch('sys.exit') as mock_exit:
-        with pytest.raises(SystemExit):  # Verifica se o código levanta a exceção de SystemExit
-            read_data(file_path)
-        mock_exit.assert_called_once()  # Verifica se sys.exit foi chamado
+    with patch('builtins.input', return_value="X"), patch('sys.exit') as mock_exit:
+        read_data(file_path)
+        mock_exit.assert_called_once_with("Closing...\n")
 
 
 def test_negative_dbh():

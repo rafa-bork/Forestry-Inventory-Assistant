@@ -2,7 +2,6 @@ Forest Inventory Management System
         Pinus Pinaster, total inventory
 
 Priorities:
-- calculate stand metrics (dominant height, dominant diameter, density, basal area, total valume, total biomass, mean quadratic diametre, wilson factor)
 - correctly use COD_status
 - export the tree's metrics and the stand's metrics into a dowloadable csv
 - create diameter distribution graph

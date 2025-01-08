@@ -49,5 +49,4 @@ def create_histogram_from_csv(file_path):
     plt.show()
 
 if __name__ == "__main__":
-    create_histogram_from_csv("tree_test.csv")
-
+    create_histogram_from_csv(r"more_tree_data\tree_data__perfect_long.csv")
