@@ -1,6 +1,5 @@
 import pandas as pd
 import sys
-import pytest
 
 def welcome_message():
     print("---")
@@ -21,51 +20,12 @@ def welcome_message():
         elif welcome.casefold() == "exit":
             sys.exit("Exiting program...\n\n")
         elif welcome == "":
-            return None, None  # Return None if user presses Enter without entering a file path
+            return None  # Return None if user presses Enter without entering a file path
         elif welcome.endswith('.csv') or welcome.endswith('.csv"'):
-            # Now ask for the stand area in square meters
-            while True:
-                try:
-                    stand_area = float(input("Please provide the stand area in square meters: ").strip())
-                    if stand_area <= 0:
-                        print("The area must be a positive number. Please try again.")
-                    else:
-                        break
-                except ValueError:
-                    print("Invalid input. Please enter a valid number for the area.")
-
-            return welcome, stand_area  # Return both file path and stand area
+            return welcome  # Return both file path and stand area
         else:
             print("The file is not a Comma Separated Values (.csv) file, please correct and try again.")
             print("---")
-
-# main menu options for the program
-def main_menu():
-    while True:  # Loop to allow repeating the menu
-        print("---")
-        print("Main Menu")
-        print("---")
-        print("Please enter the desired number:")
-        print("1) Calculate stand metrics")
-        print("2) Calculate tree metrics")
-        print("3) Export to CSV")
-        print("4) Exit")
-        choice = input("Enter your choice: ").strip()
-
-        if choice == '1':
-            compute_basic_stats(Tree.tree_list)  # Placeholder for stand metrics calculation
-            continue  # Repeats the main menu after completing the choice
-        elif choice == '2':
-            create_metrics_table(Tree.tree_list)  # Display the tree metrics table
-            continue  # Repeats the main menu after completing the choice
-        elif choice == '3':
-            export_metrics_to_csv(Tree.tree_list)  # Exits the current function, allowing the program to go back to the previous menu
-        elif choice == '4':
-            print("Exiting program...")
-            sys.exit("Closing...\n")
-        else:
-            print("Invalid choice, please try again.")
-
 
 def help():
     print("---")
@@ -92,6 +52,47 @@ def help():
     print("         3                       Missing (relevant in stands planted with a regular step)")
     print("         4                       Stump")
     print("---")
+
+def input_stand_area():
+    # Now ask for the stand area in square meters
+    while True:
+        try:
+            stand_area = float(input("Please provide the stand area in square meters: ").strip())
+        except ValueError:
+            print("The stand area is not a value, please enter a valid input.")
+        if stand_area <= 0:
+            print("The stand area is a non positive value, please enter a valid input.")
+        else: 
+            break
+    return stand_area
+
+
+# main menu options for the program
+def main_menu(stand_area):
+    while True:  # Loop to allow repeating the menu
+        print("---")
+        print("Main Menu")
+        print("---")
+        print("Please enter the desired number:")
+        print("1) Calculate stand metrics")
+        print("2) Calculate tree metrics")
+        print("3) Export to CSV")
+        print("4) Exit")
+        choice = input("Enter your choice: ").strip()
+
+        if choice == '1':
+            compute_basic_stats(Tree.tree_list, stand_area)  # Placeholder for stand metrics calculation
+            continue  # Repeats the main menu after completing the choice
+        elif choice == '2':
+            create_metrics_table(Tree.tree_list)  # Display the tree metrics table
+            continue  # Repeats the main menu after completing the choice
+        elif choice == '3':
+            export_metrics_to_csv(Tree.tree_list)  # Exits the current function, allowing the program to go back to the previous menu
+        elif choice == '4':
+            print("Exiting program...")
+            sys.exit("Closing...\n")
+        else:
+            print("Invalid choice, please try again.")
 
 
 #turn the csv into objects with attributes
@@ -252,7 +253,7 @@ def create_tree_objects(df):
 
 
 
-def compute_basic_stats(trees):
+def compute_basic_stats(trees, stand_area):
     """
     Calculates and prints simple metrics about the list of trees.
     Includes: total number of trees, average DBH, average height,
@@ -336,10 +337,11 @@ def export_metrics_to_csv(trees, filename="tree_metrics.csv"):
     print(metrics_df.to_string(index=False))
 
 def main():
-    file_path, stand_area = welcome_message()
+    file_path = welcome_message()
     tree_list = read_data(file_path)
+    stand_area = input_stand_area()
     # After the data is loaded, show the main menu
-    main_menu()
+    main_menu(stand_area)
 
 if __name__ == "__main__":
     main()

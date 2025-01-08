@@ -291,12 +291,36 @@ def create_metrics_table(trees):
     Creates a pandas DataFrame containing metrics for each tree
     and prints the table in a formatted way.
     """
+
+    print("We are working on this")
+
+    # Prepare data for the DataFrame
+    data = {
+        "Tree ID": [tree.tree_ID for tree in trees],
+        "Species": [tree.species for tree in trees],
+        "DBH (cm)": [tree.dbh for tree in trees],
+        "Height (m)": [tree.height for tree in trees],
+        "Volume (m³)": [round(tree.calculate_volume(), 4) for tree in trees],
+        "Mercantile Volume (m³)": [round(tree.calculate_mercantile_volume(), 4) for tree in trees],
+        "Biomass (kg)": [round(tree.calculate_biomass(), 4) for tree in trees],
+        "COD Status": [tree.cod_status for tree in trees],
+    }
+
     # Create and display the DataFrame
-    df = pd.DataFrame(data)
+    metrics_df = pd.DataFrame(data)
     print("\n--- Tree Metrics Table ---")
-    print(df.to_string(index=False))
+    print(metrics_df.to_string(index=False))
 
 
+
+def export_metrics_to_csv(trees, filename="tree_metrics.csv"):
+    """
+    Exports the tree metrics to a CSV file.
+    """
+    # Check if there are any trees
+    if not trees:
+        print("No data available to export.")
+        return
 
 # Function to generate charts
 def create_charts(trees):
@@ -330,30 +354,7 @@ def create_charts(trees):
     plt.show()
 
 
-def export_metrics_to_csv(trees, filename="tree_metrics.csv"):
-    """
-    Exports the tree metrics to a CSV file.
-    """
-    # Check if there are any trees
-    if not trees:
-        print("No data available to export.")
-        return
-
-    # Prepare data for the DataFrame
-    data = {
-        "Tree ID": [tree.tree_ID for tree in trees],
-        "Species": [tree.species for tree in trees],
-        "DBH (cm)": [tree.dbh for tree in trees],
-        "Height (m)": [tree.height for tree in trees],
-        "Volume (m³)": [round(tree.calculate_volume(), 4) for tree in trees],
-        "Mercantile Volume (m³)": [round(tree.calculate_mercantile_volume(), 4) for tree in trees],
-        "Biomass (kg)": [round(tree.calculate_biomass(), 4) for tree in trees],
-        "COD Status": [tree.cod_status for tree in trees],
-    }
-    # Create the DataFrame
-    metrics_df = pd.DataFrame(data)
-
-   # Export the DataFrame to a CSV file
+# Export the DataFrame to a CSV file
     try:
         metrics_df.to_csv(filename, index=False)
         print(f"Data successfully exported to {filename}.")
@@ -365,8 +366,7 @@ def export_metrics_to_csv(trees, filename="tree_metrics.csv"):
     print(metrics_df.to_string(index=False))
 
 
-
-def main():                
+def main():
     file_path = welcome_message()
     read_data(file_path)
     stand_area = input_stand_area()
