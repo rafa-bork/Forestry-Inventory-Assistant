@@ -20,7 +20,7 @@ def welcome_message():
         if welcome.casefold() == "help":
             help()
         elif welcome.casefold() == "exit":
-            sys.exit("Exiting program...\n\n")
+            sys.exit("\nExiting program...\n")
         elif welcome == "":
             return "tree_data.csv"  # Return default csv if user presses Enter without entering a file path
         elif welcome.endswith('.csv') or welcome.endswith('.csv"'):
@@ -60,12 +60,14 @@ def input_stand_area():
     while True:
         try:
             stand_area = float(input("Please provide the stand area in square meters: ").strip())
+            if stand_area <= 0:
+                print("The stand area is a non positive value, please enter a valid input.\n")
+            else: 
+                break
         except ValueError:
-            print("The stand area is not a value, please enter a valid input.")
-        if stand_area <= 0:
-            print("The stand area is a non positive value, please enter a valid input.")
-        else: 
-            break
+            print("The stand area is not a numerical value, please enter a valid input.")
+        
+
     return stand_area
 
 # main menu options for the program
@@ -74,13 +76,13 @@ def main_menu(stand_area):
         print("---")
         print("Main Menu")
         print("---")
-        print("Please enter the desired number:")
+        print("Please enter the desired option:")
         print("1) Calculate stand metrics")
         print("2) Calculate tree metrics")
         print("3) Export to csv")
         print("4) Charts")  # New option for Charts
         print("5) Exit")
-        choice = input("Enter your choice: ").strip()
+        choice = input("Enter your option: ").strip()
 
 # OPCAO 1 TA BROKEN. VE OQ SE PASSA
         if choice == '1':
@@ -95,7 +97,7 @@ def main_menu(stand_area):
             create_charts(Tree.tree_list)  # Call the chart function
             continue  # Repeats the main menu after completing the choice
         elif choice == '5':
-            sys.exit("Exiting program...")
+            sys.exit("\nExiting program...\n")
         else:
             print("Invalid choice, please try again.")
 
@@ -123,11 +125,13 @@ def validate_columns(dataframe):
     missing_columns = required_columns - dataframe_columns
     extra_columns = dataframe_columns - required_columns
     if missing_columns:
-        raise ValueError(f"There are required columns missing in the file: {missing_columns}")
+        missing_columns_list = sorted(list(missing_columns))
+        raise ValueError(f"There are required columns missing in the file: {', '.join(missing_columns_list)}")
     if extra_columns:
-        print(f"There are extra columns in the file: {extra_columns}")
+        extra_columns_list = sorted(list(extra_columns))
+        print(f"There are extra columns in the file: {', '.join(extra_columns_list)}")
         print("Are you sure? The extra columns will not be taken into account by the programme.")
-        answer = input("Press <Enter> to continue, press any other butten to close")
+        answer = input("Press <Enter> to continue, press any other button to close\n")
         if answer != "":
             sys.exit("Closing...\n")
 
@@ -247,8 +251,6 @@ def create_tree_objects(df):
         tree.set_attributes(tree_ID, species, dbh, height, cod_status)
         
         Tree.tree_list.append(tree)  # Add the tree to the Tree class-level list
-
-    print("Data imported successfully.")
 
     return Tree.tree_list  # Return the class-level list of trees
 

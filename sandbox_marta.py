@@ -1,19 +1,23 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 
-def create_histogram_from_csv(file_path):
+def create_histogram_from_csv(filetype):
     """
     Create a histogram of tree diameter classes (Class D) from a CSV file.
+
+    Parameters:
+    file_path (str): The path to the CSV file containing tree data.
+
+    Returns:
+    None: Displays a histogram.
     """
     # Read the CSV file
     try:
-        df = pd.read_csv(file_path)
+        df = pd.read_csv(r{filetype})
     except FileNotFoundError:
         print(f"Error: The file {file_path} does not exist.")
         return
-    except Exception as e:
-        print(f"Error reading the file: {e}")
-        return
+
 
     # Check if the required columns exist
     required_columns = {'DBH'}
@@ -49,5 +53,4 @@ def create_histogram_from_csv(file_path):
     plt.show()
 
 if __name__ == "__main__":
-    create_histogram_from_csv("tree_test.csv")
-
+    create_histogram_from_csv("more_tree_data\tree_data__perfect_long.csv")
