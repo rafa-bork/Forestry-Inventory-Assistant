@@ -143,3 +143,40 @@ def test_invalid_file_format():
     file_path = r"more_tree_data\invalid_file.txt"
     with pytest.raises(ValueError, match="The file is not a Comma Separated Values (.csv) file, please correct and try again."):
         read_data(file_path)
+
+
+# Test if the calculated metrics are correct 
+
+def test_calculate_metrics():
+    # Path to the CSV file with test data
+    file_path = r"more_tree_data\tree_data_test.csv"
+    
+    # Read the data from the file and create Tree objects
+    read_data(file_path)
+    
+    # Expected data for metric calculations
+    expected_metrics = [
+        {
+            "tree_ID": 1,
+            "volume": 0.6521,  # Expected value for volume
+            "basal_area": 0.0123,  # Expected value for basal area
+            "total_biomass": 35.67  # Expected value for total biomass
+        },
+        {
+            "tree_ID": 2,
+            "volume": 1.2458,
+            "basal_area": 0.0251,
+            "total_biomass": 48.92
+        }
+    ]
+
+    # Perform calculations for each tree and compare with expected results
+    for tree, expected in zip(Tree.tree_list, expected_metrics):
+        assert tree.tree_ID == expected["tree_ID"], \
+            f"Tree ID mismatch: expected {expected['tree_ID']}, got {tree.tree_ID}"
+        assert round(tree.calculate_volume(), 4) == expected["volume"], \
+            f"Volume mismatch for Tree {tree.tree_ID}: expected {expected['volume']}, got {round(tree.calculate_volume(), 4)}"
+        assert round(tree.calculate_basal_area(), 4) == expected["basal_area"], \
+            f"Basal area mismatch for Tree {tree.tree_ID}: expected {expected['basal_area']}, got {round(tree.calculate_basal_area(), 4)}"
+        assert round(tree.calculate_total_biomass(), 2) == expected["total_biomass"], \
+            f"Total biomass mismatch for Tree {tree.tree_ID}: expected {expected['total_biomass']}, got {round(tree.calculate_total_biomass(), 2)}"
