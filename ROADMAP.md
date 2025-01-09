@@ -23,7 +23,7 @@ Minimum Features
 - **importing the csv** 
 - **importing the attributes to an object**
 - **calculate tree metrics (volumes, biomass)**
-- calculate stand metrics (dominant height, dominant diameter, density, basal area, total valume, total biomass, mean quadratic diametre, wilson factor)
+- **calculate stand metrics (dominant height, dominant diameter, density, basal area, total valume, total biomass, mean quadratic diametre, wilson factor)**
 - create plots and graphs with the data (using matplotlib probably)
 
 
