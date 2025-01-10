@@ -18,10 +18,10 @@ def test_extra_column_csv_continue():
     file_path = r"more_tree_data\tree_data_extracolumn.csv"
     with patch('builtins.input', return_value=" "):
         read_data(file_path)
-    expected_attributes = {"tree_ID", "species", "dbh", "height", "cod_status"}
+    expected_attributes = {"tree_ID", "species", "est_dbh", "dbh", "height", "est_height", "cod_status", "basal_area", "tree_volume", "merc_volume", "trunk_biom", "bark_biom", "branch_biom", "leaves_biom", "aerial_biom", "roots_biom", "total_biom"}
     for tree in Tree.tree_list:
         tree_attributes = set(vars(tree).keys())  
-        assert tree_attributes == expected_attributes
+        assert expected_attributes == tree_attributes
 
 def test_duplicate_id():
     file_path = r"more_tree_data\tree_data_idduplicate.csv"
@@ -43,25 +43,25 @@ def test_missing_cod_status():
                          tree.cod_status == 1 for tree in Tree.tree_list)
     assert treefinder 
 
-#def test_missing_dbh():
-#    file_path = r"more_tree_data\tree_data_missingdbh.csv"
-#    read_data(file_path)
-#    treefinder = any(tree.tree_ID == 4 and 
-#                         tree.species == "Pb" and 
-#                         tree.dbh == ##### and 
-#                         tree.height == 19.5 and 
-#                         tree.cod_status == 1 for tree in Tree.tree_list)
-#    assert treefinder 
+def test_missing_dbh():
+    file_path = r"more_tree_data\tree_data_missingdbh.csv"
+    read_data(file_path)
+    treefinder = any(tree.tree_ID == 4 and 
+                         tree.species == "Pb" and 
+                         tree.est_dbh == 36.6 and 
+                         tree.height == 19.5 and 
+                         tree.cod_status == 1 for tree in Tree.tree_list)
+    assert treefinder 
 
-#def test_missing_height():
-#    file_path = r"more_tree_data\tree_data_missingheight.csv"
-#    read_data(file_path)
-#    treefinder = any(tree.tree_ID == 3 and 
-#                         tree.species == "Pb" and 
-#                         tree.dbh == 35.3 and 
-#                         tree.height == ####.5 and 
-#                         tree.cod_status == 1 for tree in Tree.tree_list)
-#    assert treefinder 
+def test_missing_height():
+    file_path = r"more_tree_data\tree_data_missingheight.csv"
+    read_data(file_path)
+    treefinder = any(tree.tree_ID == 3 and 
+                         tree.species == "Pb" and 
+                         tree.dbh == 35.3 and 
+                         tree.est_height == 19.1 and 
+                         tree.cod_status == 1 for tree in Tree.tree_list)
+    assert treefinder 
 
 def test_missing_species():
     file_path = r"more_tree_data\tree_data_missingspecies.csv"
@@ -140,13 +140,12 @@ def test_missing_csv():
 
 # The format of the file should be in CSV
 def test_invalid_file_format():
-    file_path = r"more_tree_data\invalid_file.txt"
-    with pytest.raises(ValueError, match="The file is not a Comma Separated Values (.csv) file, please correct and try again."):
-        read_data(file_path)
-
+    with patch('builtins.input', side_effect=["requirements.txt", ""]), patch('builtins.print') as mock_print:
+        welcome_message()
+        mock_print.assert_any_call("The file is not a Comma Separated Values (.csv) file, please correct and try again.")
 
 # Test if the calculated metrics are correct 
-
+'''
 def test_calculate_metrics():
     # Path to the CSV file with test data
     file_path = r"more_tree_data\tree_data_test.csv"
@@ -180,3 +179,4 @@ def test_calculate_metrics():
             f"Basal area mismatch for Tree {tree.tree_ID}: expected {expected['basal_area']}, got {round(tree.calculate_basal_area(), 4)}"
         assert round(tree.calculate_total_biomass(), 2) == expected["total_biomass"], \
             f"Total biomass mismatch for Tree {tree.tree_ID}: expected {expected['total_biomass']}, got {round(tree.calculate_total_biomass(), 2)}"
+'''

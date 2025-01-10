@@ -58,20 +58,25 @@ def help():
 
 def input_stand_area():
     # Now ask for the stand area in square meters
+    Stand() 
     while True:
         try:
-            stand_area = float(input("Please provide the stand area in square meters: ").strip())
+            stand_area = input("Please provide the stand area in square meters: ").strip()
+            if stand_area == "":
+                print("0.1 ha\n")
+                Stand.Area = 1000
+                return
+            if stand_area == "exit":
+                sys.exit("Closing...\n")
+            stand_area = float(stand_area)
             if stand_area <= 0:
                 print("The stand area is a non positive value, please enter a valid input.\n")
             else: break
         except ValueError:
             print("The stand area is not a numerical value, please enter a valid input.")
-        
-
-    return stand_area
+    Stand.Area = stand_area
 
 def read_data(file_path):
-    Tree.clear_tree_list()
     print("\nImporting the Datatable...\n")
     try:
         df = pd.read_csv(file_path)
@@ -134,6 +139,7 @@ class Tree:
         self.tree_ID = tree_ID
         self.species = species
         self.dbh = dbh
+        self.est_dbh = dbh
         self.height = height
         self.est_height = height
         self.cod_status = cod_status
@@ -211,54 +217,167 @@ class Tree:
     def __repr__(self):
         return f"The Tree {self.tree_ID} ({self.species}) has a diameter of {self.dbh} cm and a height of {self.height} (cod_status={self.cod_status})"
 
-    def calculate_basal_area(self):
-        if self.cod_status == 1:  # ony alive trees
-            self.basal_area = (math.pi * self.dbh / 200) ** 2
+class Stand:
 
-    def calculate_tree_volume(self):
-        if self.cod_status != 4:  # only calculate if its not a stump (also doesnt calculcate missing bc they dont have dbh nor h)
-            self.tree_volume = 0.7520 * (self.dbh / 100) ** 2.0706 * self.height ** 0.8031
-    
-    def calculate_mercantile_volume(self): # only calculare for alive trees
-        if self.cod_status == 1:  # ony alive trees
-            self.merc_volume = 0.0000247 * self.dbh ** 2.1119 * self.height ** 0.9261
+    def __init__(self):
+        self.Area = 0
+        self.Total = 0
+        self.N = 0
+        self.N_alive = 0
+        self.N_dead = 0
+        self.n_dom_trees = 0
+        self.hdom = 0
+        self.ddom = 0
+        self.G_pov = 0
+        self.V_pov = 0
+        self.dg = 0
+        self.Fw = 0
 
-    def calculate_trunk_biomass(self):
-        if self.cod_status != 4:  # only calculate if its not a stump (also doesnt calculcate missing bc they dont have dbh nor h)
-            self.trunk_biom = 0.0146 * self.dbh ** 1.94687 * self.height ** 1.106577
 
-    def calculate_bark_biomass(self):
-        if self.cod_status != 4:  # only calculate if its not a stump (also doesnt calculcate missing bc they dont have dbh nor h)
-            self.bark_biom = 0.0114 * self.dbh ** 1.8728 * self.height ** 0.6694
+def calculate_missing_dbh_h():
+    for t in Tree.tree_list:
+        if math.isnan(t.height):
+            if t.species == "Pb":
+                t.est_height = round(t.dbh / (1.0643 + 0.0222 * t.dbh), 2)
+            if t.species == "Ec":
+                t.est_height = round(t.dbh / (0.6733 + 0.0130 * t.dbh), 2)
+            if t.species == "Pm":
+                t.est_height = round(t.dbh / (1.8104 + 0.0388 * t.dbh), 2)
+            if t.species == "Sb":
+                du_Sb = -1.5276 + 0.8321 * t.dbh #we assume that the cork is virgin, otherwise the calculations would be harder
+                t.est_height = round(du_Sb / (2.1124 + 0.0293 * du_Sb, 2))
+                
+        if math.isnan(t.dbh):
+            if t.species == "Pb":
+                t.est_dbh = round((-t.height*1.0643) / (t.height*0.0222 - 1), 2)
+            if t.species == "Ec":
+                t.est_dbh = round((-t.height*0.6733) / (t.height*0.0130 - 1), 2)
+            if t.species == "Pm":
+                t.est_dbh = round((-t.height*1.8104) / (t.height*0.0388 - 1), 2)
+            if t.species == "Sb":
+                t.est_dbh = round((-t.height*2.1124) / (t.height*0.0293 - 1), 2)
 
-    def calculate_branches_biomass(self):
-        if self.cod_status == 1:  # only calculate if alive
-            self.branch_biom = 0.00308 * self.dbh ** 2.75761 * (self.height / self.dbh) ** -0.39381
 
-    def calculate_leaves_biomass(self):
-        if self.cod_status == 1:  # only calculate if alive
-            self.leaves_biom = 0.09980 * self.dbh ** 1.39252 * (self.height / self.dbh) ** -0.71962
+def calculate_tree_metrics():
+    for t in Tree.tree_list:
+        t.basal_area = (math.pi * t.est_dbh / 200) ** 2
 
-    def calculate_aerial_biomass(self):
-        self.aerial_biom = self.trunk_biom + self.bark_biom + self.branch_biom + self.leaves_biom
+        if t.species == "Pb":
+            if t.cod_status == 1 or t.cod_status == 2: 
+                t.tree_volume = 0.7520 * (t.est_dbh / 100) ** 2.0706 * t.est_height ** 0.8031
 
-    def calculate_roots_biomass(self):
-        self.roots_biom = 0.2756 * self.aerial_biom
+                if t.cod_status == 1:
+                    t.merc_volume = 0.0000247 * t.est_dbh ** 2.1119 * t.est_height ** 0.9261
+                    t.trunk_biom = 0.0146 * t.est_dbh ** 1.94687 * t.est_height ** 1.106577
+                    t.bark_biom = 0.0114 * t.est_dbh ** 1.8728 * t.est_height ** 0.6694
+                    t.branch_biom = 0.00308 * t.est_dbh ** 2.75761 * (t.est_height / t.est_dbh) ** -0.39381
+                    t.leaves_biom = 0.09980 * t.est_dbh ** 1.39252 * (t.est_height / t.est_dbh) ** -0.71962
+                    t.aerial_biom = t.trunk_biom + t.bark_biom + t.branch_biom + t.leaves_biom
+                    t.roots_biom = 0.2756 * t.aerial_biom
+                    t.total_biom = t.aerial_biom + t.roots_biom
         
-    def calculate_total_biomass(self):
-        self.total_biom = self.aerial_biom + self.roots_biom
-    
-    def calculate_tree_metrics(self):
-            self.calculate_basal_area(self)
-            self.calculate_tree_volume(self)
-            self.calculate_mercantile_volume(self)
-            self.calculate_trunk_biomass(self)
-            self.calculate_bark_biomass(self)
-            self.calculate_branches_biomass(self)
-            self.calculate_leaves_biomass(self)
-            self.calculate_aerial_biomass(self)
-            self.calculate_root_biomass(self)
-            self.calculate_total_biomass(self)
+        if t.species == "Ec":
+            if t.cod_status == 1 or t.cod_status == 2: 
+                t.tree_volume = 0.2105 * (t.est_dbh / 100) ** 1.8191 * t.est_height ** 1.0703
+
+                if t.cod_status == 1:
+                    t.merc_volume = 0.1241 * (t.est_dbh / 100) ** 1.7829 * t.est_height ** 1.1564
+                    if Stand.hdom > 10.71:
+                        beta = 1.780459
+                    else:
+                        beta = Stand.hdom/(-0.70909 + 0.627861*Stand.hdom)
+                    t.trunk_biom = 0.009964 * t.est_dbh ** beta * t.est_height ** 1.369618
+                    if Stand.hdom > 18.2691:
+                        beta = 2.37947
+                    else:
+                        beta = Stand.hdom/(-0.69951 + 0.45855*Stand.hdom)
+                    t.bark_biom = 0.000594 * t.est_dbh ** beta * t.est_height ** 1.084988
+                    t.branch_biom = 0.095603 * t.est_dbh ** 1.674653 * (t.est_height / t.est_dbh) ** -0.85073
+                    t.leaves_biom = 0.248952 * t.est_dbh ** 1.264033 * (t.est_height / t.est_dbh) ** -0.7121
+                    t.aerial_biom = t.trunk_biom + t.bark_biom + t.branch_biom + t.leaves_biom
+                    t.roots_biom = 0.2487 * t.aerial_biom
+                    t.total_biom = t.aerial_biom + t.roots_biom
+
+        if t.species == "Pm":
+            if t.cod_status == 1 or t.cod_status == 2: 
+                t.tree_volume = 0.000094 * t.est_dbh ** 1.9693 * t.est_height ** 0.6530
+
+                if t.cod_status == 1:
+                    t.merc_volume = 0
+                    t.trunk_biom = 18.8544 * (math.pi * t.est_dbh) ** 1.6755 * t.est_height ** 0.9485
+                    t.bark_biom = 8.0810 * (math.pi * t.est_dbh) ** 1.5549 * t.est_height ** 0.4702
+                    t.branch_biom = 184,9365 * (math.pi * t.est_dbh) ** 3.0344 
+                    t.leaves_biom = 22.2677 * (math.pi * t.est_dbh) ** 1.7607 * (t.est_height / t.est_dbh) ** -0.5003
+                    t.aerial_biom = t.trunk_biom + t.bark_biom + t.branch_biom + t.leaves_biom
+                    t.roots_biom = 0.4522 * t.eest_dbh ** 1.1294
+                    t.total_biom = t.aerial_biom + t.roots_biom
+
+        if t.species == "Sb":
+            if t.cod_status == 1 or t.cod_status == 2: 
+
+                t.tree_volume = 0.000460 * t.est_dbh ** 2.0302
+
+                if t.cod_status == 1:
+                    t.merc_volume = 0
+                    t.trunk_biom = 284.2881 * (math.pi * t.est_dbh) ** 2.9646 
+                    t.bark_biom = 0.960006 * t.est_dbh ** 1.300779 
+                    t.branch_biom = 108.5769 * (math.pi * t.est_dbh) ** 1.3464
+                    t.leaves_biom = 22.5773 * (math.pi * t.est_dbh) ** 1.1690
+                    t.aerial_biom = t.trunk_biom + t.bark_biom + t.branch_biom + t.leaves_biom
+                    t.roots_biom = 0.063777 * t.est_dbh ** 2.07779
+                    t.total_biom = t.aerial_biom + t.roots_biom
+
+def stand_metrics():
+
+    # because hdom and ddom can only be calculated with alive trees valid_trees_dom is created
+    valid_trees = [t for t in Tree.tree_list] # takes into account all trees (except missing trees)
+    valid_trees_alive = [t for t in valid_trees if t.cod_status == 1] # only takes into account alive trees
+    valid_trees_dead = [t for t in valid_trees if t.cod_status == 2] # only takes into account dead trees
+
+    f_exp = 10000/Stand.Area
+
+    Stand.Total = len(valid_trees)
+
+    # Calculate tree density (number of trees per hectare)
+    Stand.N = len(valid_trees) * f_exp
+    Stand.N_alive = len(valid_trees_alive)*f_exp
+    Stand.N_dead = len(valid_trees_dead)*f_exp
+
+    # Calculate the number of dominant trees
+    Stand.n_dom_trees = int((Stand.Area * 100) / 10000)  # Number of dominant trees based on stand area
+
+    # Order alive tree heights in descending order
+    trees_sorted_by_height = sorted(valid_trees_alive, key=lambda t: t.est_height, reverse=True)
+
+    # Select the top `n_dom_trees` heights
+    top_trees = trees_sorted_by_height[:Stand.n_dom_trees]
+
+    # Calculate H_dom: mean height of the dominant trees
+    Stand.hdom = sum(tree.est_height for tree in top_trees) / Stand.n_dom_trees
+
+    # Calculate D_dom: mean diameter of the dominant trees
+    Stand.ddom = sum(tree.est_dbh for tree in top_trees) / Stand.n_dom_trees
+
+    calculate_tree_metrics()
+
+    # Calculating basal area (G)
+    G = 0
+    for tree in valid_trees_alive:
+        G += tree.basal_area * f_exp
+
+    # calculate total volume (V) NOTA: this is the total volume with bark and stump of the entire stand.
+    V = 0  # Initialize volume to 0
+    for tree in valid_trees_alive:
+        V += tree.tree_volume * f_exp  # Add volume for valid trees
+
+    #calculate dg. need to calculate G_pov first
+    Stand.G_pov = G*f_exp
+    Stand.V_pov = V*f_exp
+
+    Stand.dg = math.sqrt((4*Stand.G_pov)/(math.pi*(Stand.N_alive)))*100
+
+    # calculate wilson factor
+    Stand.Fw = 100/(Stand.hdom*math.sqrt(Stand.N_alive))
 
 def main_menu():
     # Loop to allow repeating the menu
@@ -277,69 +396,22 @@ def main_menu():
     else:
         print("Invalid option, please try again.")
 
-def stand_metrics(stand_area):
-    # because hdom and ddom can only be calculated with alive trees valid_trees_dom is created
-    valid_trees = [t for t in Tree.tree_list] # takes into account all trees (except missing trees)
-    valid_trees_alive = [t for t in valid_trees if t.cod_status == 1] # only takes into account alive trees
-    valid_trees_dead = [t for t in valid_trees if t.cod_status == 2] # only takes into account dead trees
 
-    f_exp = 10000/stand_area
-
-    # Calculate tree density (number of trees per hectare)
-    N = len(valid_trees) * f_exp
-    N_alive = len(valid_trees_alive)*f_exp
-    N_dead = len(valid_trees_dead)*f_exp
-
-    # Calculate the number of dominant trees
-    n_dom_trees = int((stand_area * 100) / 10000)  # Number of dominant trees based on stand area
-
-    # Order alive tree heights in descending order
-    trees_sorted_by_height = sorted(valid_trees_alive, key=lambda t: t.height, reverse=True)
-
-    # Select the top `n_dom_trees` heights
-    top_trees = trees_sorted_by_height[:n_dom_trees]
-
-    # Calculate H_dom: mean height of the dominant trees
-    hdom = sum(tree.height for tree in top_trees) / n_dom_trees
-
-    # Calculate D_dom: mean diameter of the dominant trees
-    ddom = sum(tree.dbh for tree in top_trees) / n_dom_trees
-
-    # Calculating basal area (G)
-    G = 0
-    for tree in valid_trees_alive:
-        G += tree.basal_area * f_exp
-
-    # calculate total volume (V) NOTA: this is the total volume with bark and stump of the entire stand.
-    V = 0  # Initialize volume to 0
-    for tree in valid_trees_alive:
-        V += tree.tree_volume * f_exp  # Add volume for valid trees
-
-    #calculate dg. need to calculate G_pov first
-    G_pov = G*f_exp
-    V_pov = V*f_exp
-
-    dg = math.sqrt((4*G_pov)/(math.pi*(N_alive)))*100
-
-    # calculate wilson factor
-    Fw = 100/(hdom*math.sqrt(N_alive))
-
-    print_stand_stats(len(valid_trees), N, N_alive, N_dead, n_dom_trees, hdom, ddom, G_pov, V_pov, dg, Fw)
-
-def print_stand_stats(Total, N, N_alive, N_dead, n_dom_trees, hdom, ddom, G_pov, V_pov, dg, Fw):
+def print_stand_stats():
     # Display results
     print("\n--- Statistics ---")
-    print(f"Total trees: {Total}")
-    print(f"Tree density (N): {N:.2f}")
-    print(f"Tree density of alive trees (N_alive): {N_alive:.2f}")
-    print(f"Tree density of dead trees (N_dead): {N_dead:.2f}")
-    print(f"Number of Dominant Trees: {n_dom_trees}")
-    print(f"Dominant Height (h_dom): {hdom:.2f}m")
-    print(f"Dominant Diameter (d_dom): {ddom:.2f}cm")
-    print(f"Basal Area (G/ha): {G_pov:.2f}m²")
-    print(f"Total Volume (V): {V_pov:.2f}m³")
-    print(f"Quadratic Diameter (dg): {dg:.2f}cm")
-    print(f"Wilson Factor (Fw): {Fw:.2f}")
+    print(f"Stand Area: {Stand.Area}")
+    print(f"Total trees: {Stand.Total}")
+    print(f"Tree density (N): {Stand.N:.2f}")
+    print(f"Tree density of alive trees (N_alive): {Stand.N_alive:.2f}")
+    print(f"Tree density of dead trees (N_dead): {Stand.N_dead:.2f}")
+    print(f"Number of Dominant Trees: {Stand.n_dom_trees}")
+    print(f"Dominant Height (h_dom): {Stand.hdom:.2f}m")
+    print(f"Dominant Diameter (d_dom): {Stand.ddom:.2f}cm")
+    print(f"Basal Area (G/ha): {Stand.G_pov:.2f}m²")
+    print(f"Total Volume (V): {Stand.V_pov:.2f}m³")
+    print(f"Quadratic Diameter (dg): {Stand.dg:.2f}cm")
+    print(f"Wilson Factor (Fw): {Stand.Fw:.2f}")
     print("")
 
 def create_metrics_table():
@@ -349,12 +421,12 @@ def create_metrics_table():
     data = {
         "Tree ID": [tree.tree_ID for tree in Tree.tree_list],
         "Species": [tree.species for tree in Tree.tree_list],
-        "DBH (cm)": [tree.dbh for tree in Tree.tree_list],
-        "Height (m)": [tree.height for tree in Tree.tree_list],
-        "Volume (m³)": [round(tree.calculate_tree_volume(), 4) for tree in Tree.tree_list],
-        "Mercantile Volume (m³)": [round(tree.calculate_mercantile_volume(), 4) for tree in Tree.tree_list],
-        "Basal area (m²)": [round(tree.calculate_basal_area(), 4) for tree in Tree.tree_list],
-        "Total Biomass (kg)": [round(tree.calculate_total_biomass(), 4) for tree in Tree.tree_list],
+        "DBH (cm)": [tree.est_dbh for tree in Tree.tree_list],
+        "Height (m)": [tree.est_height for tree in Tree.tree_list],
+        "Volume (m³)": [round(tree.tree_volume, 4) for tree in Tree.tree_list],
+        "Mercantile Volume (m³)": [round(tree.merc_volume, 4) for tree in Tree.tree_list],
+        "Basal area (m²)": [round(tree.basal_area, 4) for tree in Tree.tree_list],
+        "Total Biomass (kg)": [round(tree.total_biom, 4) for tree in Tree.tree_list],
     }
 
     # Create and display the DataFrame
@@ -401,7 +473,7 @@ def create_histogram(file_path):
     ]
 
     # Group the data into diameter classes
-    df['Diameter Class'] = pd.cut(df['DBH'], bins=bins, labels=labels, right=False)
+    file_path['Diameter Class'] = pd.cut(df['DBH'], bins=bins, labels=labels, right=False)
 
     # Count the frequencies for each class
     frequencies = df['Diameter Class'].value_counts(sort=False)
@@ -420,29 +492,29 @@ def create_histogram(file_path):
     # Show the plot
     plt.show()
 
-def export_metrics_to_csv(stand_area):
+def export_metrics_to_csv():
     # Prepare data for the tree metrics DataFrame
     data = {
         "Tree ID": [tree.tree_ID for tree in Tree.tree_list],
         "Species": [tree.species for tree in Tree.tree_list],
         "COD_Status": [tree.cod_status for tree in Tree.tree_list],
-        "DBH (cm)": [tree.dbh for tree in Tree.tree_list],
-        "Height (m)": [tree.height for tree in Tree.tree_list],
-        "Volume (m³)": [round(tree.calculate_tree_volume(), 4) for tree in Tree.tree_list],
-        "Mercantile Volume (m³)": [round(tree.calculate_mercantile_volume(), 4) for tree in Tree.tree_list],
-        "Basal area (m²)": [round(tree.calculate_basal_area(), 4) for tree in Tree.tree_list],
-        "Trunk Biomass (kg)": [round(tree.calculate_trunk_biomass(), 4) for tree in Tree.tree_list],
-        "Bark Biomass (kg)": [round(tree.calculate_bark_biomass(), 4) for tree in Tree.tree_list],
-        "Branches Biomass (kg)": [round(tree.calculate_branches_biomass(), 4) for tree in Tree.tree_list],
-        "Needles Biomass (kg)": [round(tree.calculate_needles_biomass(), 4) for tree in Tree.tree_list],
-        "Aerial Biomass (kg)": [round(tree.calculate_aerial_biomass(), 4) for tree in Tree.tree_list],
-        "Roots Biomass (kg)": [round(tree.calculate_roots_biomass(), 4) for tree in Tree.tree_list],
-        "Total Biomass (kg)": [round(tree.calculate_total_biomass(), 4) for tree in Tree.tree_list],
+        "DBH (cm)": [tree.est_dbh for tree in Tree.tree_list],
+        "Height (m)": [tree.est_height for tree in Tree.tree_list],
+        "Volume (m³)": [round(tree.tree_volume, 4) for tree in Tree.tree_list],
+        "Mercantile Volume (m³)": [round(tree.merc_volume, 4) for tree in Tree.tree_list],
+        "Basal area (m²)": [round(tree.basal_area, 4) for tree in Tree.tree_list],
+        "Trunk Biomass (kg)": [round(tree.trunk_biom, 4) for tree in Tree.tree_list],
+        "Bark Biomass (kg)": [round(tree.bark_biom, 4) for tree in Tree.tree_list],
+        "Branches Biomass (kg)": [round(tree.branch_biom, 4) for tree in Tree.tree_list],
+        "Needles Biomass (kg)": [round(tree.leaves_biom, 4) for tree in Tree.tree_list],
+        "Aerial Biomass (kg)": [round(tree.aerial_biom, 4) for tree in Tree.tree_list],
+        "Roots Biomass (kg)": [round(tree.roots_biom, 4) for tree in Tree.tree_list],
+        "Total Biomass (kg)": [round(tree.total_biom, 4) for tree in Tree.tree_list],
     }
     metrics_df = pd.DataFrame(data)
 
     # Prepare the stand area as a separate DataFrame
-    # stand_data = pd.DataFrame([{"Stand Area (m²)": stand_area}])
+    # stand_data = pd.DataFrame([{"Stand Area (m²)": Stand_Area}])
 
     # Write to CSV
     try:
@@ -456,23 +528,24 @@ def export_metrics_to_csv(stand_area):
     except Exception as e:
         print(f"\nFailed to export data: {e}\n")
 
-def main():                
+def main():
+    Tree.clear_tree_list()
     file_path = welcome_message()
     read_data(file_path)
-    stand_area = input_stand_area()
-    for t in Tree.tree_list:
-        Tree.calculate_tree_metrics(t)
+    input_stand_area()
+    calculate_missing_dbh_h()
+    stand_metrics()
     # After the data is loaded, show the main menu
     while True:
         option = main_menu()
         if option == '1': 
-            stand_metrics(stand_area)  # Placeholder for stand metrics calculation
+            print_stand_stats()  # Placeholder for stand metrics calculation
         elif option == '2': 
             create_metrics_table()  # Display the tree metrics table
         elif option == '3': 
             create_histogram()  # Call the chart function
         elif option == '4': 
-            export_metrics_to_csv(stand_area)  # Export metrics when the user selects this option
+            export_metrics_to_csv()  # Export metrics when the user selects this option
         elif option == '5': 
             sys.exit("\nExiting program...\n")
 
