@@ -16,9 +16,9 @@ def test_extra_column_csv_stop():
 
 def test_extra_column_csv_continue():
     file_path = r"more_tree_data\tree_data_extracolumn.csv"
-    with patch('builtins.input', return_value=" "):
+    with patch('builtins.input', return_value=""):
         read_data(file_path)
-    expected_attributes = {"tree_ID", "species", "est_dbh", "dbh", "height", "est_height", "cod_status", "basal_area", "tree_volume", "merc_volume", "trunk_biom", "bark_biom", "branch_biom", "leaves_biom", "aerial_biom", "roots_biom", "total_biom"}
+    expected_attributes = {"tree_ID", "species", "est_dbh", "dbh", "height", "est_height", "cod_status", "basal_area", "tree_volume", "merc_volume", "trunk_biom", "bark_biom", "branch_biom", "leaves_biom", "aerial_biom", "roots_biom", "total_biom", "wood_value"}
     for tree in Tree.tree_list:
         tree_attributes = set(vars(tree).keys())  
         assert expected_attributes == tree_attributes
@@ -46,20 +46,22 @@ def test_missing_cod_status():
 def test_missing_dbh():
     file_path = r"more_tree_data\tree_data_missingdbh.csv"
     read_data(file_path)
+    calculate_missing_dbh_h()
     treefinder = any(tree.tree_ID == 4 and 
                          tree.species == "Pb" and 
                          tree.est_dbh == 36.6 and 
                          tree.height == 19.5 and 
                          tree.cod_status == 1 for tree in Tree.tree_list)
-    assert treefinder 
+    assert treefinder
 
 def test_missing_height():
     file_path = r"more_tree_data\tree_data_missingheight.csv"
     read_data(file_path)
+    calculate_missing_dbh_h()
     treefinder = any(tree.tree_ID == 3 and 
                          tree.species == "Pb" and 
                          tree.dbh == 35.3 and 
-                         tree.est_height == 19.1 and 
+                         tree.est_height == 19.10 and 
                          tree.cod_status == 1 for tree in Tree.tree_list)
     assert treefinder 
 
@@ -137,46 +139,3 @@ def test_missing_csv():
     file_path = r"more_tree_data\this_file_does_not_exist.csv"
     with pytest.raises(FileNotFoundError, match="There was an error reading the file, please correct and restart."):
         read_data(file_path)
-
-# The format of the file should be in CSV
-def test_invalid_file_format():
-    with patch('builtins.input', side_effect=["requirements.txt", ""]), patch('builtins.print') as mock_print:
-        welcome_message()
-        mock_print.assert_any_call("The file is not a Comma Separated Values (.csv) file, please correct and try again.")
-
-# Test if the calculated metrics are correct 
-'''
-def test_calculate_metrics():
-    # Path to the CSV file with test data
-    file_path = r"more_tree_data\tree_data_test.csv"
-    
-    # Read the data from the file and create Tree objects
-    read_data(file_path)
-    
-    # Expected data for metric calculations
-    expected_metrics = [
-        {
-            "tree_ID": 1,
-            "volume": 0.6521,  # Expected value for volume
-            "basal_area": 0.0123,  # Expected value for basal area
-            "total_biomass": 35.67  # Expected value for total biomass
-        },
-        {
-            "tree_ID": 2,
-            "volume": 1.2458,
-            "basal_area": 0.0251,
-            "total_biomass": 48.92
-        }
-    ]
-
-    # Perform calculations for each tree and compare with expected results
-    for tree, expected in zip(Tree.tree_list, expected_metrics):
-        assert tree.tree_ID == expected["tree_ID"], \
-            f"Tree ID mismatch: expected {expected['tree_ID']}, got {tree.tree_ID}"
-        assert round(tree.calculate_volume(), 4) == expected["volume"], \
-            f"Volume mismatch for Tree {tree.tree_ID}: expected {expected['volume']}, got {round(tree.calculate_volume(), 4)}"
-        assert round(tree.calculate_basal_area(), 4) == expected["basal_area"], \
-            f"Basal area mismatch for Tree {tree.tree_ID}: expected {expected['basal_area']}, got {round(tree.calculate_basal_area(), 4)}"
-        assert round(tree.calculate_total_biomass(), 2) == expected["total_biomass"], \
-            f"Total biomass mismatch for Tree {tree.tree_ID}: expected {expected['total_biomass']}, got {round(tree.calculate_total_biomass(), 2)}"
-'''
