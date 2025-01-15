@@ -32,12 +32,27 @@ Below the functions used are described:
 
 - **calculate_missing_dbh_h()** will fill the *est_diameter* and *est_height* values that are missing, from the other one ussing regressions , for each tree. This means that every tree has a *est_diameter* and *est_height* attribute, allowing the *dbh* and *h* attribute to store only the measured values in the field.
 
-- **calculate_tree_metrics()** will calculate the basal area, mercantile volume (wood volume without bark and the stump), biomass of the trunk, biomass of the branches, biomass of the bark, biomass of the leaves, biomass of the aerial part of the tree, biomass of the roots, total biomass and will call **wood_value_Pb()** an **wood_value_Ec()** to calculate the value of wood from the tree if its from that species. Cork Oak and Maritime Pine are not farmed for wood.
+- **calculate_tree_metrics()**, each tree has ifferent characteristics, for example the species, the diameter (DBH), estimated height and COD status which can be 1 (alive) or 2 (dead). If the COD status is 1, then more metrics such as mercantile volume, biomass and wood value are calculated. The basal area, mercantile volume (wood volume without bark and the stump), biomass of the trunk, biomass of the branches, biomass of the bark, biomass of the leaves, biomass of the aerial part of the tree, biomass of the roots, total biomass and will call **wood_value_Pb()** an **wood_value_Ec()** to calculate the value of wood from the tree if its from that species. Cork Oak and Maritime Pine are not farmed for wood.
 
+- **stand_metrics()** calculates some stand related metrics. It filters the trees by Status, counts the occurences of species related to the alive trees. Then calculates the basal area and the total volume and total wood value for all the alive trees.
 
+- **site_index_calculation** gives a measure of the site productivity on the base of the dominant height (hdom) and the age of the trees. This functions helps in the understanding of potential productivity of the forest. 
 
+- **main_menu** allows the user to interact with the program choosing one of the 6 presented options. 
 
+- **print_stand_stats** displays key statistics and metrics about a forest stand providing a summary of the most important data such as trees’ size, economic value and productivity. 
 
+- **create_metrics_table()** is essential to create formatted tables containing tree metrics which can then be exported as CSV files. It makes the visualization and review of the data easier 
+
+- **create_histrogram(trees)** generates two histograms representing the distribution of tree diameter (DBH) and height in a forest inventory. The figures can be saved using matplotlib commands. 
+
+- **show_histograms()** ensures that the histograms are displayed properly and if there is an error a message is provided instead of crashing the program. 
+
+- **export_plots_to_png** saves the histograms created before as PNG files. If the plots are saves successfully, a confirmation message appears, if not, a failure message is shown. 
+
+- **export_to_csv** includes tree and stand metrics to export forestry data in a CSV file. As a function, it starts by collecting and organizing metrics for the trees into a dictionary. 
+
+- **main** is entry point for the forestry inventory program. It begins by ensuring that no existing tree is in the memory. then there is the part dedicated to *Input and Data loading*. After this, a *while true loop* provides a menu of options for the user to interact with the program. All the sorts of menu options are a sequence of * if and elif*. Briefly, this *main* acts as a control center, coordinating the most important parts of the program. 
 
 
 
