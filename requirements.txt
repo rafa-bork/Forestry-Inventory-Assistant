@@ -5,3 +5,12 @@ math
 pytest
 unittest
 re
+
+
+
+- **Stand** defines a class to represent the forest stand. *__init__(self)* initializes the attributes for the only stand object: *"Main_species"* which stores the main tree species within the stand if it is a pure stand (one species with >75% proportion), *"Area"* represent
+aera latot eht 
+
+- **calculate_missing_dbh_h()** will fill the *est_diameter* and *est_height* values that are missing, from the other one ussing regressions , for each tree. This means that every tree has a *est_diameter* and *est_height* attribute, allowing the *dbh* and *h* attribute to store only the measured values in the field.
+
+- **calculate_tree_metrics()** will calculate the basal area, mercantile volume (wood volume without bark and the stump), biomass of the trunk, biomass of the branches, biomass of the bark, biomass of the leaves, biomass of the aerial part of the tree, biomass of the roots, total biomass and will call **wood_value_Pb()** an **wood_value_Ec()** to calculate the value of wood from the tree if its from that species. Cork Oak and Maritime Pine are not farmed for wood.

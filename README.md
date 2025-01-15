@@ -29,7 +29,6 @@ Below the functions used are described:
 - **Tree** defines a class that will serve as a blueprint for all the tree objects, and will store all the objects and their attributes in a *tree_list* list. The values that will be later calculated are stored as zero for the time being. The *est_dbh* and *est_height* will have the *dbh* and *h* value if it is provided, but will otherwise be filled with a value calculated from the other using regressions from the **calculate_missing_dbh_h()** function. There is also a method called **set_attributes(self, tree_ID, species, dbh, height, cod_status)** that calls all **set_(...)** methods that check if every value in the csv file is applicable and correctly formatted. There is also a **clear_tree_list(self)** that deletes the content of *tree_list* at the begining of the session.
 
 - **Stand** defines a class to represent the forest stand. *__init__(self)* initializes the attributes for the only stand object: *"Main_species"* which stores the main tree species within the stand if it is a pure stand (one species with >75% proportion), *"Area"* represent
- aera latot eht 
 
 - **calculate_missing_dbh_h()** will fill the *est_diameter* and *est_height* values that are missing, from the other one ussing regressions , for each tree. This means that every tree has a *est_diameter* and *est_height* attribute, allowing the *dbh* and *h* attribute to store only the measured values in the field.
 
@@ -44,4 +43,4 @@ Below the functions used are described:
 
 Regressions extracted from: Tomé, M., Barreiro, S., Amaral, J., Pacheco, S., & Forchange, F. (n.d.). Selecção de equações para estimação de variáveis da árvore em inventários florestais a realizar em Portugal Forest Ecosystems Management under Global Change Publicações FORCHANGE PT 9/2007. https://www.isa.ulisboa.pt/cef/forchange/fctools/sites/default/files/pub/docs/equacoes-if_em_portugal.pdf and Barreiro, S. (2023). Inventário Florestal [Material de aula]. Instituto Superior de Agronomia - Universidade de Lisboa.
 
-‌Wood Values extracted from: Tomé, M & Barreiro, S (2024). StandsSIM.md[v2.1.1] management driven forest growth simulator for the portuguese forest. Available at: https://www.simflor.online/standssim
+‌Wood Values by assortment extracted from: Tomé, M & Barreiro, S (2024). StandsSIM.md[v2.1.1] management driven forest growth simulator for the portuguese forest. Available at: https://www.simflor.online/standssim
