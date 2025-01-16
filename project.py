@@ -116,9 +116,6 @@ def create_tree_objects(df):
         dbh = row.get("DBH", None)
         height = row.get("height", None)
         cod_status = row.get("COD_Status", None)
-
-        if math.isnan(dbh) and math.isnan(height) and cod_status != 3:
-            raise ValueError("There are trees without DBH and height values, please correct and restart") # Exiting if both DBH and height are missing
         
         if pd.isna(cod_status):
             cod_status = 1
@@ -130,6 +127,9 @@ def create_tree_objects(df):
 
         tree.set_attributes(tree_ID, species, dbh, height, cod_status)
         Tree.tree_list.append(tree)  # Add the tree to the Tree class-level list
+
+        if math.isnan(dbh) and math.isnan(height) and cod_status != 3:
+            raise ValueError("There are trees without DBH and height values, please correct and restart") # Exiting if both DBH and height are missing
 
     return Tree.tree_list  # Return the class-level list of trees
 
@@ -188,7 +188,7 @@ class Tree:
             raise ValueError("There is a species value that is not acceptable (not 'Pb', 'Pm', 'Ec', or 'Sb'), please correct and restart") # Exiting if invalid species
         self.species = species
 
-    def set_dbh(self, dbh):
+    def set_dbh(self, dbh, species):
         try:
             dbh = float(dbh)
             self.dbh = dbh
@@ -196,8 +196,10 @@ class Tree:
             raise ValueError("There is a DBH value that cannot be converted to float, please correct and restart.") # Exits the program if DBH cannot be converted
         if dbh < 0:  # Checks if the value is negative
             raise ValueError("There is a negative DBH value, please correct and restart.") # Exits the program if DBH is negative
-        elif dbh < 7.5:  # Checks if the diameter is large enough to be considered a tree
+        elif dbh < 7.5 and species != "Ec":  # Checks if the diameter is large enough to be considered a tree
             raise ValueError("There is a DBH value that's less than 7.5cm, this is not considered a tree, please correct and restart.") # Exits the program if DBH is less than 7.5
+        elif dbh < 5:  # Checks if the diameter is large enough to be considered a tree (Ec are counted if they have more than 5cm of dbh)
+            raise ValueError("There is a Eucalyptus' DBH value that's less than 5cm, this is not considered a tree, please correct and restart.") # Exits the program if DBH is less than 7.5
         
     def set_height(self, height):
         try:
@@ -216,7 +218,7 @@ class Tree:
     def set_attributes(self, tree_ID, species, dbh, height, cod_status):
         self.set_tree_id(tree_ID)
         self.set_species(species)
-        self.set_dbh(dbh)
+        self.set_dbh(dbh, species)
         self.set_height(height)
         self.set_cod_status(cod_status)
 
