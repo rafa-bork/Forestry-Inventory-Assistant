@@ -69,7 +69,7 @@ def input_stand_area():
                 sys.exit("Closing...\n")
             stand_area = float(stand_area)
             if stand_area <= 0:
-                print("The stand area is a non positive value, please enter a valid input.\n")
+                print("The stand area is a non-positive value, please enter a valid input.\n")
             else: break
         except ValueError:
             print("The stand area is not a numerical value, please enter a valid input.")
@@ -77,7 +77,9 @@ def input_stand_area():
 
 def read_data(file_path):
     Tree.clear_tree_list()  # Clear any existing trees before importing new data
-    print("\nImporting the Datatable...\n")
+    Stand.Main_species = "Mixed Stand"
+
+    print("\nImporting the Data table...\n")
     try:
         df = pd.read_csv(file_path)
         validate_columns(df)
@@ -115,7 +117,7 @@ def create_tree_objects(df):
         height = row.get("height", None)
         cod_status = row.get("COD_Status", None)
 
-        if dbh is None and height is None and cod_status != 3:
+        if math.isnan(dbh) and math.isnan(height) and cod_status != 3:
             raise ValueError("There are trees without DBH and height values, please correct and restart") # Exiting if both DBH and height are missing
         
         if pd.isna(cod_status):
@@ -171,11 +173,11 @@ class Tree:
         if pd.isna(tree_ID):
             raise ValueError("There is a missing tree_id value, please correct and restart")
         if not isinstance(tree_ID, int) and not isinstance(tree_ID, float):
-            raise ValueError("There is a non integer tree_id value, please correct and restart")
+            raise ValueError("There is a non-integer tree_id value, please correct and restart")
         if tree_ID != int(tree_ID):
             raise ValueError("There is a decimal tree_id value, please correct and restart")
         if tree_ID <= 0:  # Id needs to be positive
-            raise ValueError("There is a non positive tree_id value, please correct and restart")
+            raise ValueError("There is a non-positive tree_id value, please correct and restart")
         self.tree_ID = int(tree_ID)
 
     def set_species(self, species):
@@ -224,7 +226,7 @@ class Tree:
 class Stand:
 
     def __init__(self):
-        self.Main_species = "Mixed Stand"
+        self.Main_species = 0
         self.Area = 0
         self.Age = 0
         self.Total = 0
@@ -240,6 +242,25 @@ class Stand:
         self.Fw = 0
         self.Site_index = 0
         self.SDI = 0
+    
+    def __str__(self):
+        # Returns a formatted string with the class attributes
+        return (f"Forest Stand: {self.Main_species}\n"
+                f"Area: {self.Area} ha\n"
+                f"Age: {self.Age} years\n"
+                f"Total number of trees: {self.Total}\n"
+                f"Tree density: {self.N} trees/ha\n"
+                f"Dead tree density: {self.N_dead} trees/ha\n"
+                f"Number of dominant trees: {self.n_dom_trees}\n"
+                f"Dominant height: {self.hdom} m\n"
+                f"Dominant diameter: {self.ddom} cm\n"
+                f"Total basal area: {self.G_pov} m²/ha\n"
+                f"Total volume: {self.V_pov} m³/ha\n"
+                f"Economic value: {self.Value_pov} €\n"
+                f"Mean quadratic diameter: {self.dg} cm\n"
+                f"Wilson factor: {self.Fw}\n"
+                f"Site index: {self.Site_index}\n"
+                f"Stand density index: {self.SDI}")
 
 
 def calculate_missing_dbh_h():
@@ -268,7 +289,7 @@ def calculate_missing_dbh_h():
 
 def calculate_tree_metrics():
     for t in Tree.tree_list:
-        t.basal_area = (math.pi * t.est_dbh / 200) ** 2
+        t.basal_area = math.pi * (t.est_dbh / 100 / 2) ** 2
 
         if t.species == "Pb":
             if t.cod_status == 1 or t.cod_status == 2: 
@@ -363,7 +384,6 @@ def wood_value_Ec(dbh, h, V):
     Wood_Value = V___6 * 30
     return Wood_Value
     
-
 def stand_metrics():
 
     # because hdom and ddom can only be calculated with alive trees valid_trees_dom is created
@@ -394,14 +414,13 @@ def stand_metrics():
 
     trees_for_dominant = []
 
-    for t in valid_trees_alive:
-        if Stand.Main_species != "Mixed Stand":  
+    if Stand.Main_species != "Mixed Stand":  
+        for t in valid_trees_alive:
             if t.species == Stand.Main_species:  
                 trees_for_dominant.append(t)    
-        else:
-            trees_for_dominant = valid_trees_alive
-            break
-
+    else:
+        trees_for_dominant = valid_trees_alive
+        
     if Stand.n_dom_trees > len(trees_for_dominant):
         Stand.n_dom_trees = len(trees_for_dominant)
 
@@ -450,31 +469,37 @@ def stand_metrics():
         Stand.SDI = Stand.N * (Stand.dg / 25) ** 1.6
     elif Stand.Main_species == "Sb":
         Stand.SDI = Stand.N * (Stand.dg / 25) ** 1.806
+    else: Stand.SDI = 0
 
     site_index_calculation()
 
 def site_index_calculation():
     if Stand.Main_species != "Mixed Stand":
         while True:
-            age = input("If a Stand has an uniform age please state (Press <Enter> if it doesn't): ").strip()
+            age = input("If a Stand has a uniform age please state (Press <Enter> if it doesn't): ").strip()
             if age == "exit":
                 sys.exit("Closing...\n")
             if age == "":
-                Stand.Site_index = 0
-                return
+                age = 0
+                break
             try:
-                Stand.Age = int(age)
+                age == int(age)
                 break
             except Exception:
                 print("The given value is not an integer, please try again.")
-
+        
+        Stand.Age = int(age)
         if Stand.Main_species == "Pb" or Stand.Main_species == "Pm":
             Stand.Site_Index = 69 * (Stand.hdom/69) ** (Stand.Age/50) ** 0.458203
         if Stand.Main_species == "Ec": #0.4057 is an average coefficient for the regions and management options
             Stand.Site_Index = 61.1372* (Stand.hdom/61.1372) ** (Stand.Age/10) ** 0.4057
         if Stand.Main_species == "Sb":
             Stand.Site_Index = 20.7216 / (1- (1- 20.7216/Stand.hdom) * (Stand.Age / 80) ** 1.4486)
-
+        else: Stand.Site_index = 0
+       
+    else: 
+        Stand.Site_index = 0
+        Stand.Age = 0
 
 def main_menu():
     # Loop to allow repeating the menu
@@ -484,8 +509,8 @@ def main_menu():
     print("1) Calculate stand metrics")
     print("2) Calculate tree metrics")
     print("3) Show histograms")  # shows histograms to user
-    print("4) Export tree metrics to csv file") #Export to csv
-    print("5) Export histograms to png") # exports histograms to png
+    print("4) Export metrics to csv files               the 'metrics_...' csv files will be replaced") #Export to csv
+    print("5) Export histograms to png files            the 'chart_tree_...' png files will be replaced") # exports histograms to png
     print("6) Exit")
     choice = input("Enter your option: ").strip()
     if choice in ['1', '2', '3', '4', '5', '6']:
@@ -493,17 +518,15 @@ def main_menu():
     else:
         print("Invalid option, please try again.")
 
-
 def print_stand_stats():
     # Display results
-    print("\n--- Statistics ---")
-    print(f"Stand Area: {Stand.Area}")
-    print(f"Total trees: {Stand.Total}")
-    print(f"Tree density (N): {Stand.N:.2f}")
-    print(f"Tree density of dead trees (N_dead): {Stand.N_dead:.2f}")
-    print(f"Number of Dominant Trees: {Stand.n_dom_trees}")
+    print("\n--- Stand Statistics ---")
+    print("For more metrics please export to csv.\n")
+    print(f"Is it a Pure Stand? {Stand.Main_species}")
+    print(f"Stand Area (A): {Stand.Area/10000}ha")
+    print(f"Number of trees: {Stand.Total}")
+    print(f"Tree density (N): {Stand.N:.2f} trees/ha")
     print(f"Dominant Height (h_dom): {Stand.hdom:.2f}m")
-    print(f"Dominant Diameter (d_dom): {Stand.ddom:.2f}cm")
     print(f"Basal Area (G/ha): {Stand.G_pov:.2f}m²")
     print(f"Total Volume (V/ha): {Stand.V_pov:.2f}m³")
     print(f"Total Wood Value (Value/ha): {Stand.Value_pov:.2f}€")
@@ -511,12 +534,9 @@ def print_stand_stats():
     print(f"Wilson Factor (Fw): {Stand.Fw:.2f}")
     print(f"Stand Density Index (SDI): {Stand.SDI:.2f}")
     print(f"Site Index: {Stand.Site_index:.2f}")
-    print("")
 
-def create_metrics_table():
-    # Creates a pandas DataFrame containing metrics for each tree and prints the table in a formatted way.
+def print_tree_stats():
 
-    # Prepare data for the DataFrame
     tree_data = {
         "Tree ID": [tree.tree_ID for tree in Tree.tree_list],
         "Species": [tree.species for tree in Tree.tree_list],
@@ -532,36 +552,10 @@ def create_metrics_table():
     # Create and display the DataFrame
     tree_df = pd.DataFrame(tree_data)
     print("\n--- Tree Metrics Table ---")
-    print("For more metrics please export to csv.")
-    print("")
+    print("For more metrics please export to csv.\n")
     print(tree_df.to_string(index=False))
-    print("")
 
-    # Prepare data for the DataFrame
-    stand_data = {
-        "Main Species": [Stand.Main_species],
-        "Area (ha)": [Stand.Area/10000],
-        "Number of Trees": [Stand.Total],
-        "Tree Density (trees/ha)": [Stand.N],
-        "Dominant Height (m)": [Stand.hdom],
-        "Total Basal Area (m²/ha)": [Stand.G_pov],
-        "Total Volume (m³/ha)": [Stand.V_pov],
-        "Total Wood Value (€/ha)": [Stand.Value_pov],
-        "Mean Quadratic Diameter (cm)": [Stand.dg],
-        "Wilson Factor": [Stand.Fw],
-        "Site Index": [Stand.Site_index],
-        "Stand Density Index": [Stand.SDI],        
-    }
 
-    # Create and display the DataFrame
-    stand_df = pd.DataFrame(stand_data)
-    print("\n--- Tree Metrics Table ---")
-    print("For more metrics please export to csv.")
-    print("")
-    print(stand_df.to_string(index=False))
-    print("")
-
-    return tree_df, stand_df
 
 def create_histogram(trees):
 
@@ -648,21 +642,22 @@ def export_to_csv():
 
         # Prepare data for the DataFrame
     stand_data = {
-        "Main Species": [Stand.Main_species],
-        "Area (ha)": [Stand.Area/10000],
+        "Pure Stand": [Stand.Main_species],
+        "Area (ha)": [round(Stand.Area/10000, 5)],
+        "Stand Age (yr)": [Stand.Age],
         "Number of Trees": [Stand.Total],
-        "Tree Density (trees/ha)": [Stand.N],
-        "Dead Tree Density (trees/ha)": [Stand.N_dead],
+        "Tree Density (trees/ha)": [round(Stand.N, 4)],
+        "Dead Tree Density (trees/ha)": [round(Stand.N_dead, 4)],
         "Number of Dominant Trees": [Stand.n_dom_trees],
-        "Dominant Height (m)": [Stand.hdom],
-        "Dominant Diametre (cm)": [Stand.ddom],
-        "Total Basal Area (m²/ha)": [Stand.G_pov],
-        "Total Volume (m³/ha)": [Stand.V_pov],
-        "Total Wood Value (€/ha)": [Stand.Value_pov],
-        "Mean Quadratic Diameter (cm)": [Stand.dg],
-        "Wilson Factor": [Stand.Fw],
-        "Site Index": [Stand.Site_index],
-        "Stand Density Index": [Stand.SDI],        
+        "Dominant Height (m)": [round(Stand.hdom, 4)],
+        "Dominant Diametre (cm)": [round(Stand.ddom, 4)],
+        "Total Basal Area (m²/ha)": [round(Stand.G_pov, 4)],
+        "Total Volume (m³/ha)": [round(Stand.V_pov, 4)],
+        "Total Wood Value (€/ha)": [round(Stand.Value_pov, 4)],
+        "Mean Quadratic Diameter (cm)": [round(Stand.dg, 4)],
+        "Wilson Factor": [round(Stand.Fw, 4)],
+        "Site Index": [round(Stand.Site_index, 4)],
+        "Stand Density Index": [round(Stand.SDI, 4)],        
     }
 
     # Create and display the DataFrame
@@ -670,18 +665,20 @@ def export_to_csv():
 
     # Write to CSV
     try:
-        with open("data.csv", "w") as f:
-            metrics_df.to_csv(f, index=False)
-            # Optionally, add a separator or a title for the second table
-            f.write("\n--- Stand Data ---\n")  # This line will make it clear which section is next
-            stand_df.to_csv(f, index=False)
-        print(f"\nData successfully exported.\n")
+        with open("metrics_tree.csv", "w") as f:
+            f.truncate(0) 
+            metrics_df.to_csv(f, index=False, encoding='utf-8')
+        
+        with open("metrics_stand.csv", "w") as f:
+            f.truncate(0) 
+            stand_df.to_csv(f, index=False, encoding='utf-8')
+
+        print(f"\nData successfully exported.")
     except Exception as e:
         print(f"\nFailed to export data: {e}\n")
 
 def main():
     Tree.clear_tree_list()
-    Stand()
     file_path = welcome_message()
     read_data(file_path)
     input_stand_area()
@@ -696,7 +693,7 @@ def main():
         if option == '1':
             print_stand_stats()  # Placeholder for stand metrics calculation
         elif option == '2':
-            create_metrics_table()  # Display the tree metrics table
+            print_tree_stats()  # Display the tree metrics table
         elif option == '3':
             # Display the histograms
                 plt.show()

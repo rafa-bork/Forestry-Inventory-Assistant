@@ -75,7 +75,7 @@ def test_missing_tree_id():
     with pytest.raises(ValueError, match="There is a missing tree_id value, please correct and restart"):
         read_data(file_path)
 
-def test_mixed_atributes():
+def test_mixed_attributes():
     file_path = r"more_tree_data\tree_data_mixedattributes.csv"
     read_data(file_path)
     treefinder = any(tree.tree_ID == 2 and 
