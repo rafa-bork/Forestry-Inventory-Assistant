@@ -14,11 +14,6 @@ def test_extra_column_csv_stop():
         read_data(file_path)
         mock_exit.assert_called_once_with("Closing...\n")
 
-def test_stump_height():
-    file_path = r"more_tree_data\tree_data_heightstump.csv"
-    with pytest.raises(ValueError, match="There is a stump with a height value, Please correct and restart."):
-        read_data(file_path)
-
 def test_extra_column_csv_continue():
     file_path = r"more_tree_data\tree_data_extracolumn.csv"
     with patch('builtins.input', return_value=""):

@@ -128,7 +128,7 @@ def create_tree_objects(df):
         tree.set_attributes(tree_ID, species, dbh, height, cod_status)
         Tree.tree_list.append(tree)  # Add the tree to the Tree class-level list
 
-        if math.isnan(dbh) and math.isnan(height) and cod_status != 3:
+        if math.isnan(dbh) and math.isnan(height) and cod_status == 1:
             raise ValueError("There are trees without DBH and height values, please correct and restart") # Exiting if both DBH and height are missing
 
     return Tree.tree_list  # Return the class-level list of trees
@@ -201,7 +201,7 @@ class Tree:
         elif dbh < 5:  # Checks if the diameter is large enough to be considered a tree (Ec are counted if they have more than 5cm of dbh)
             raise ValueError("There is a Eucalyptus' DBH value that's less than 5cm, this is not considered a tree, please correct and restart.") # Exits the program if DBH is less than 7.5
         
-    def set_height(self, height):
+    def set_height(self, height, cod_status):
         try:
             height = float(height)
             self.height = height
@@ -209,6 +209,8 @@ class Tree:
             raise ValueError("There is a height value that cannot be converted to float. Please correct and restart.") # Exits the program if height cannot be converted
         if height < 0:  # Checks if the height is negative
             raise ValueError("There is a negative height value, Please correct and restart.") # Exits the program if height is negative
+        if height != 0 and cod_status == 4:
+            raise ValueError("There is a stump with a height value, Please correct and restart.")
         
     def set_cod_status(self, cod_status):
         if cod_status not in [1, 2, 3, 4]:
@@ -219,7 +221,7 @@ class Tree:
         self.set_tree_id(tree_ID)
         self.set_species(species)
         self.set_dbh(dbh, species)
-        self.set_height(height)
+        self.set_height(height, cod_status)
         self.set_cod_status(cod_status)
 
     def __repr__(self):

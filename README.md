@@ -9,8 +9,9 @@ Below you can find the files that are in this repository and their function.
  ## __pycache__ and .pytest_cache
 Files that are created automatically for the library pytest to work. 
 
-## more_tree_data
-A folder with 28 CSV files each one with distinctive characteristics for the user to play around with and some to evaluate the robustness of the code by being deliberately badly formatted.
+## tree data and more_tree_data
+The first file  will be used in the analysis as default if the user does not specify a file path. Despite the file having some tree measurements as default, it is recommended that the user changes the values in this file for their inputs if needed.
+The second one is a folder with 28 CSV files each one with distinctive characteristics for the user to play around with and some to evaluate the robustness of the code by being deliberately badly formatted.
 
 ## chart_tree_dbh_classes.png and chart_tree_height_classes.png
 Histograms with the distribution of the heights and diameters of the trees they were inputted in the program. This graph will be replaced if the user inputs another tree list and asks to extract the charts again.
@@ -66,15 +67,14 @@ Here are listed all the external libraries that are needed for the code to work 
 ## test_project.py 
 This code helps in the validation of program's robustness. 
 
-- The files-related tests as **test_empty_csv**, **test_extra_column_stop**, **test_extra_column_csv_continue** and **test_missing_csv** ensure that the issues related to the files are handled correctly, raising error if the CSV file is empty, showing a closing message if there is an extra column, raising a *FileNotFoundError* if the CSV file doesn't exist. 
+- The files-related tests as **test_empty_csv**, **test_extra_column_csv_stop**, **test_extra_column_csv_continue** and ensure that the issues related to the files are handled correctly, raising error if the CSV file is empty, showing a closing message if there is an extra column, raising a *FileNotFoundError* if the CSV file doesn't exist. 
 
 - The attributes-related tests aim to check if the input data are correct. 
-Those are: **test_suplicate_id()**, **test_missing_attributes()**, **test_mixed_attributes()** which checks the data's consistency.
- **test_negative_dbh()**, **test_negative_height()**, **test_new_species**, **test_float_tree_id()**, **test_char_dbh**, **test_char_height()**, **test_short_dbh**, **test_wrong_cod_status()**, **test_zero_tree_id** and **test_zero_tree_id()** raise *ValueError* if some attributes are wrongly input. This is important to ensure inventory system is free of errors. 
- **test_missing_cod_status()**, **test_missing_dbh()**, **test_missing_height()**, **test_missing_species()**, **test_missing_tree_id()** check that all those important attributes are present. 
+Those are: **test_suplicate_id()**, **test_missing_attributes()**, **test_code_status()** which checks the data's consistency.
+ **test_missing_dbh()**, **test_missing_height()**, **test_missing_dbh_and_height()**, **test_missing_species()** **test_missing_tree_id()**, **test_missing_attributes()**, **test_negative_dbh()**, **test_negative_height()**, **test_new_species**, **test_float_tree_id()**, **test_char_tree_id**, **test_char_dbh()**, **test_char_height()**, **test_short_dbh**, **test_short_dbh_Ec()**, **test_wrong_cod_status()**, **test_zero_tree_id** and **test_stump_height** raise *ValueError* if some attributes are wrongly input. Those kinds of tests ensure that the inventory system is free of errors. 
+ **Test_missing_csv()** gives *FileNotFoundError* as message and test_missing_cod_status()**. 
+ The last one is **test_values** verifies if the calculations and values associated with specific trees and stand (forest) attributes are correct.
 
-## tree_data.csv and 
-The file that will be used in the analysis as default if the user does not specify a file path. Despite the file having some tree measurements as default, it is recommended that the user changes the values in this file for their inputs if needed.
 
 Regressions extracted from: Tomé, M., Barreiro, S., Amaral, J., Pacheco, S., & Forchange, F. (n.d.). Selecção de equações para estimação de variáveis da árvore em inventários florestais a realizar em Portugal Forest Ecosystems Management under Global Change Publicações FORCHANGE PT 9/2007. https://www.isa.ulisboa.pt/cef/forchange/fctools/sites/default/files/pub/docs/equacoes-if_em_portugal.pdf and Barreiro, S. (2023). Inventário Florestal [Material de aula]. Instituto Superior de Agronomia - Universidade de Lisboa.
 
