@@ -484,8 +484,9 @@ def site_index_calculation():
             if age == "exit":
                 sys.exit("Closing...\n")
             if age == "":
-                age = 0
-                break
+                Stand.Age = 0
+                Stand.Site_index = 0
+                return
             try:
                 age == int(age)
                 break
