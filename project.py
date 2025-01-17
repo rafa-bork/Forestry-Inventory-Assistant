@@ -491,20 +491,20 @@ def site_index_calculation():
                 break
             except Exception:
                 print("The given value is not an integer, please try again.")
-        
-        Stand.Age = int(age)
-        if Stand.Main_species == "Pb" or Stand.Main_species == "Pm":
-            Stand.Site_Index = 69 * (Stand.hdom/69) ** (Stand.Age/50) ** 0.458203
-        if Stand.Main_species == "Ec": #0.4057 is an average coefficient for the regions and management options
-            Stand.Site_Index = 61.1372* (Stand.hdom/61.1372) ** (Stand.Age/10) ** 0.4057
-        if Stand.Main_species == "Sb":
-            Stand.Site_Index = 20.7216 / (1- (1- 20.7216/Stand.hdom) * (Stand.Age / 80) ** 1.4486)
-        else: Stand.Site_index = 0
-       
+
     else: 
         Stand.Site_index = 0
         Stand.Age = 0
-
+        return
+    
+    Stand.Age = int(age)
+    if Stand.Main_species == "Pb" or Stand.Main_species == "Pm":
+        Stand.Site_index = 69 * (Stand.hdom/69) ** (Stand.Age/50) ** 0.458203
+    if Stand.Main_species == "Ec": #0.4057 is an average coefficient for the regions and management options
+        Stand.Site_index = 61.1372* (Stand.hdom/61.1372) ** (Stand.Age/10) ** 0.4057
+    if Stand.Main_species == "Sb":
+        Stand.Site_index = 20.7216 / (1- (1- 20.7216/Stand.hdom) * (Stand.Age / 80) ** 1.4486)
+ 
 def main_menu():
     # Loop to allow repeating the menu
     print()

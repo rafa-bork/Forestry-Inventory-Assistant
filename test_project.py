@@ -211,7 +211,7 @@ def test_values():
     assert treefinder_2, "Tree with ID 2 does not have the expected values."
     
     assert Stand.Main_species == "Pb"
-    assert Stand.Area == 0.1*10000
+    assert Stand.Area == 1000
     assert Stand.Age == 0
     assert Stand.Total == 6
     assert Stand.N == 60
