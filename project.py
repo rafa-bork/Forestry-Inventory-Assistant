@@ -33,13 +33,13 @@ def help():
     print("---")
     print("This Program is a tool to help in the characterization and analysis of a tree stand")
     print("This tool uses mathematical and statistical tools to calculate and infer the features of the stand from a short grouping of the tree's accurate measurements")
-    print("These measurements, the height and the diameter of each tree in the plot, need to be inserted into the tree_data.csv file in the correct order")
+    print("These measurements, the height and the diameter of each tree in the plot, should be inserted into the tree_data.csv file")
     print("This file is in the same folder as this python script")
     print("")
-    print("This file *must have* 5 columns: 'tree_ID', 'species', 'DBH', 'height' and 'COD_Status'")
+    print("This file should have 5 columns: 'tree_ID', 'species', 'DBH', 'height' and 'COD_Status'")
     print("The 'tree_ID' column must have a sequential numerical order to uniquely identify each tree in the plot")
     print("The 'species' column must have a code that corresponds to the tree's species")
-    print("         species Code             Common Name                Scientific Name")
+    print("         Species Code             Common Name                Scientific Name")
     print("         Pb                       Maritime Pine              Pinus pinaster")
     print("         Pm                       Stone Pine                 Pinus pinea")
     print("         Ec                       Southern Blue Gum          Eucalyptus globulus")
@@ -60,9 +60,9 @@ def input_stand_area():
     Stand() 
     while True:
         try:
-            stand_area = input("Please provide the stand area in hectares: ").strip()
+            stand_area = input("Please provide the stand area in square meters: ").strip()
             if stand_area == "":
-                print("0.1 ha\n")
+                print("1000 m²\n")
                 Stand.Area = 1000
                 return
             if stand_area == "exit":
@@ -73,7 +73,7 @@ def input_stand_area():
             else: break
         except ValueError:
             print("The stand area is not a numerical value, please enter a valid input.")
-    Stand.Area = stand_area*10000
+    Stand.Area = stand_area
 
 def read_data(file_path):
     Tree.clear_tree_list()  # Clear any existing trees before importing new data
