@@ -5,7 +5,7 @@ import math
 
 def welcome_message():
     print("---")
-    print("Welcome to the Forest Inventory Companion Program!")
+    print("Welcome to the Forest Inventory Assistant!")
     print("---")
     print("Please add your tree data to the tree_data.csv file in the correct format")
     while True:
